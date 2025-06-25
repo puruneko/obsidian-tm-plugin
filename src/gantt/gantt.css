@@ -1,0 +1,8 @@
+/* Add task ボタンを非表示にする */
+.gantt_add_task_button {
+  display: none !important;
+}
+[data-col-id="action"],
+[data-header-id="action"] {
+  display: none !important;
+}

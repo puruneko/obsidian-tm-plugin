@@ -1,0 +1,97 @@
+import React, {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from "react";
+//
+import { Gantt, Willow } from "wx-react-gantt";
+import "wx-react-gantt/dist/gantt.css";
+import { getData, zoomConfig, simpleColumns } from "../debug/sampleData";
+//
+
+function randomNumber(min: number, max: number): number {
+  return Math.floor(Math.random() * (max - min + 1) + min);
+}
+
+function rollDice(
+  numDice: number,
+  diceSides: number,
+  modifier: number
+): number {
+  let result = 0;
+
+  for (let i = 0; i < numDice; i++) {
+    result += randomNumber(1, diceSides);
+  }
+
+  return result + modifier;
+}
+
+const DiceRoller = forwardRef((props, ref) => {
+  const [numDice, setNumDice] = useState(1);
+  const [diceSides, setDiceSides] = useState(20);
+  const [modifier, setModifier] = useState(0);
+  const [result, setResult] = useState(null);
+  //
+  const [ganttReactKey, setGanttReactKey] = useState(1);
+  const ganttRef = useRef(null);
+  const { tasks, links, scales } = getData();
+  //
+
+  useEffect(() => {
+    console.log("useEffect");
+    //setGanttReactKey((k) => k + 1);
+  }, []);
+  useImperativeHandle(ref, () => ({
+    rerender: () => {
+      console.log("rerender");
+      setGanttReactKey((k) => k + 1);
+    },
+  }));
+
+  console.log("DiceRoller");
+
+  return (
+    <>
+      <div className="DiceRoller__container">
+        <input
+          type="number"
+          value={diceSides}
+          onChange={(e) => setNumDice(parseInt(e.target.value, 10))}
+        />
+        D{` `}
+        <input
+          type="number"
+          value={numDice}
+          onChange={(e) => setDiceSides(parseInt(e.target.value, 10))}
+        />
+        +{` `}
+        <input
+          type="number"
+          value={modifier}
+          onChange={(e) => setModifier(parseInt(e.target.value, 10))}
+        />
+      </div>
+      <h4>{result}</h4>
+      <button onClick={() => setResult(rollDice(numDice, diceSides, modifier))}>
+        Roll!
+      </button>
+      <div style={{ height: "100%" }}>
+        <Willow>
+          <Gantt
+            key={`ganttReactKey-${ganttReactKey}`}
+            tasks={tasks}
+            links={links}
+            scales={scales}
+            zoom={zoomConfig}
+            columns={simpleColumns}
+          />
+        </Willow>
+      </div>
+    </>
+  );
+});
+
+export default DiceRoller;

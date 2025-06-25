@@ -1,0 +1,35 @@
+import { MdTask } from "../src/task/taskModel";
+
+describe("MdTask class", () => {
+    it("fromEventInput で生成できる", () => {
+        const input = {
+            id: "ev1",
+            title: "会議",
+            start: "2025-07-01T10:00:00Z",
+            end: "2025-07-01T11:00:00Z",
+            allDay: false,
+        };
+        const task = MdTask.fromEventInput(input);
+        expect(task.id).toBe("ev1");
+        expect(task.title).toBe("会議");
+        expect(task.start instanceof Date).toBe(true);
+        expect(task.get("name")).toBe("会議"); // エイリアスも確認
+    });
+
+    it("toGanttTask で name に変換される", () => {
+        const task = new MdTask({
+            id: "t1",
+            title: "設計",
+            start: new Date(),
+            end: new Date(),
+        });
+        const gantt = task.toGanttTask();
+        expect(gantt.name).toBe("設計");
+        expect(gantt.data).toEqual(expect.objectContaining({ id: "t1" }));
+    });
+
+    it("不明な get() では undefined を返す", () => {
+        const task = new MdTask({ title: "foo" });
+        expect(task.get("unknown")).toBeUndefined();
+    });
+});

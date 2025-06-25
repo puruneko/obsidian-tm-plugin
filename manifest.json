@@ -1,0 +1,10 @@
+{
+    "id": "tm-plugin",
+    "name": "[WIP]TM Plugin Test",
+    "description": "Obsidian + FullCalendar + WX-React-Gantt",
+    "version": "0.0.1",
+    "author": "purunekocat",
+    "authorUrl": "",
+    "isDesktopOnly": true,
+    "minAppVersion": "0.10.8"
+}

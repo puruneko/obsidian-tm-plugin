@@ -1,0 +1,153 @@
+/*
+
+export type T_STask = {
+    id: string;
+    title: string;
+    start?: Date;
+    end?: Date;
+    allDay?: boolean;
+    extendedProps: {
+        tag?: string;
+        linetext: string;
+        parsedLine: T_ParsedTask | null;
+        state: string;
+        header: any;
+        link: string;
+        file: TFile;
+        position: ObsidianPos;
+        error: string[];
+    };
+};
+
+// FullCalendar 形式への変換
+export function toFullCalendarEvent(task: T_STask): EventInput {
+    return {
+        id: task.id,
+        title: task.title,
+        start: task.start,
+        end: task.end,
+        color: task.color,
+        extendedProps: { ...task },
+    };
+}
+
+// Gantt形式への変換（name = title）
+export function toGanttTask(task: T_STask): GanttTask {
+    return {
+        id: task.id,
+        name: task.title,
+        start_date: task.start,
+        end_date: task.end,
+        color: task.color,
+        data: { ...task }, // ← カスタムプロパティを丸ごと載せる
+    };
+}
+
+*/
+import {
+    CachedMetadata,
+    ListItemCache,
+    Pos as ObsidianPos,
+    TFile,
+    View,
+} from "obsidian";
+//
+import type { EventInput } from "@fullcalendar/core";
+import type { GanttTask } from "wx-react-gantt";
+//
+import { T_ParsedTask } from "src/util/lineParser";
+//
+export class MdTask {
+    //
+    id: string;
+    //タスクの本文
+    title: string;
+    //開始日時
+    start?: Date;
+    //終了日時
+    end?: Date;
+    //終日タスクかどうか
+    allDay?: boolean;
+    //
+    tag?: string;
+    linetext: string;
+    parsedLine: T_ParsedTask | null;
+    state: string;
+    header: any;
+    link: string;
+    file: TFile;
+    position: ObsidianPos;
+    error: string[];
+
+    // 別名対応マッピング
+    private static aliases: Record<string, keyof MdTask> = {
+        name: "title",
+        label: "title",
+        text: "title",
+        start_date: "start",
+        end_date: "end",
+    };
+
+    constructor(init?: Partial<MdTask>) {
+        Object.assign(this, init);
+    }
+
+    // 任意プロパティを安全に取得（別名にも対応）
+    get(key: string): any {
+        const actual = key in this ? key : MdTask.aliases[key];
+        return actual ? (this as any)[actual] : undefined;
+    }
+
+    // FullCalendar → MdTask
+    static fromEventInput(input: EventInput): MdTask {
+        return new MdTask({
+            id: input.id ?? crypto.randomUUID(),
+            title: input.title ?? "",
+            start:
+                input.start instanceof Date
+                    ? input.start
+                    : new Date(input.start ?? ""),
+            end:
+                input.end instanceof Date
+                    ? input.end
+                    : input.end
+                    ? new Date(input.end)
+                    : undefined,
+            allDay: input.allDay,
+        });
+    }
+
+    // wx-react-gantt → MdTask
+    static fromGanttTask(task: GanttTask): MdTask {
+        const data = (task.data ?? {}) as Partial<MdTask>;
+        return new MdTask({
+            ...data,
+            id: String(task.id),
+            title: task.name,
+            start: new Date(task.start_date),
+            end: new Date(task.end_date),
+        });
+    }
+
+    // MdTask → FullCalendar
+    toEventInput(): EventInput {
+        return {
+            id: this.id,
+            title: this.title,
+            start: this.start,
+            end: this.end,
+            allDay: this.allDay,
+        };
+    }
+
+    // MdTask → wx-react-gantt
+    toGanttTask(): GanttTask {
+        return {
+            id: this.id,
+            name: this.title,
+            start_date: this.start?.toISOString() ?? "",
+            end_date: this.end?.toISOString() ?? "",
+            data: this,
+        };
+    }
+}
