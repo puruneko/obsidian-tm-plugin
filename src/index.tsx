@@ -11,7 +11,7 @@ import React from "react";
 import ReactDOM from "react-dom";
 
 import { DATETIME_CONSTANT } from "./util/datetimeUtil";
-import { MyCalendarView, VIEW_TYPE_MY_PANEL } from "./ui/calendar";
+import { MyCalendarView, VIEW_TYPE_MY_PANEL } from "./calendar/calendar";
 import { MyTaskSuggest, PlanFollowUpSuggest } from "./ui/suggest";
 import { GanttView, VIEW_TYPE_GANTT } from "./gantt/ganttView";
 import { defaultSTaskSettings, getSTasks, T_STask } from "./task/task";

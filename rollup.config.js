@@ -9,27 +9,29 @@ import postcss from "rollup-plugin-postcss";
 //
 
 export default {
-  input: "src/index.tsx?",
-  output: {
-    format: "cjs",
-    file: "main.js",
-    exports: "default",
-  },
-  external: ["obsidian", "fs", "os", "path"],
-  plugins: [
-    postcss(),
-    typescript(),
-    resolve({
-      browser: true,
-    }),
-    replace({
-      "process.env.NODE_ENV": JSON.stringify(env.NODE_ENV),
-      preventAssignment: true,
-    }),
-    babel({
-      presets: ["@babel/preset-react", "@babel/preset-typescript"],
-      plugins: ["@babel/plugin-proposal-class-properties"],
-    }),
-    commonjs(),
-  ],
+    input: "src/index.tsx?",
+    output: {
+        format: "cjs",
+        file: "main.js",
+        exports: "default",
+    },
+    external: ["obsidian", "fs", "os", "path"],
+    plugins: [
+        postcss(),
+        typescript(),
+        resolve({
+            browser: true,
+        }),
+        replace({
+            "process.env.NODE_ENV": JSON.stringify(env.NODE_ENV),
+            preventAssignment: true,
+        }),
+        /*
+        babel({
+            presets: ["@babel/preset-react"], //, "@babel/preset-typescript"],
+            plugins: ["@babel/plugin-proposal-class-properties"],
+        }),
+        */
+        commonjs(),
+    ],
 };

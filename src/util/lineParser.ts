@@ -8,27 +8,6 @@ export type T_TagSetting = {
 };
 export type T_TagSettings = T_TagSetting[];
 
-/*
-const DEFAULT_TAG_SETTINGS: T_TagSettings = {
-  "#": {
-    requireSpace: false,
-    label: "ハッシュタグ",
-    description: "分類タグ",
-  },
-  $: {
-    requireSpace: false,
-    label: "システムタグ",
-    description: "状態や処理制御など",
-  },
-  "★": {
-    requireSpace: true,
-    label: "スター",
-    description: "注目や優先度を示す",
-  },
-  "⏳": { requireSpace: null, label: "時間", description: "時間" },
-};
-*/
-
 export const DEFAULT_TAG_SETTINGS: T_TagSettings = [
     {
         prefix: "#",
@@ -62,6 +41,27 @@ export const DEFAULT_TAG_SETTINGS: T_TagSettings = [
     },
 ];
 
+/*
+const DEFAULT_TAG_SETTINGS: T_TagSettings = {
+  "#": {
+    requireSpace: false,
+    label: "ハッシュタグ",
+    description: "分類タグ",
+  },
+  $: {
+    requireSpace: false,
+    label: "システムタグ",
+    description: "状態や処理制御など",
+  },
+  "★": {
+    requireSpace: true,
+    label: "スター",
+    description: "注目や優先度を示す",
+  },
+  "⏳": { requireSpace: null, label: "時間", description: "時間" },
+};
+*/
+
 // escape用ユーティリティ
 const escapeRegex = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
@@ -74,7 +74,8 @@ export type T_TaskLineParseSettings = {
     tagSettings: T_TagSettings;
 };
 const genTaskLineParseSettings = (
-    tagSettings: T_TagSettings
+    tagSettings: T_TagSettings,
+    allowedStatePattern: string = "[ \\S]"
 ): T_TaskLineParseSettings => {
     // taskText内で除外するタグprefixを動的に文字クラスに変換
     const prefixChars = tagSettings
@@ -99,7 +100,7 @@ const genTaskLineParseSettings = (
 
     // タスク行構文パターン（全文）
     const taskLineRegexpPattern =
-        `^(\\s*- \\[([ xX])\\])` + // 1: チェックボックス
+        `^(\\s*- \\[(${allowedStatePattern})\\])` + // 1: チェックボックス
         `(\\s*)` + // 2: checkboxと本文の間
         `([^\\n${prefixChars}]*?)` + // 3: taskText
         `(?=(?:\\s*(?:${tagUnitRegexpPattern}))+|\\s*$)` + // 4✅ ← ここ！タグまたは行末で終わらせる

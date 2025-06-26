@@ -221,8 +221,14 @@ export function createSTask(
         mdContent,
         taskLineParseSettings
     );
+    //listItemCacheがtaskではない場合、null
     if (!task) {
         return null;
+    }
+    //taskがdoneの場合、sTask無し
+    const doneStates = ["x", "X"];
+    if (doneStates.includes(task.state)) {
+        return [];
     }
 
     //sTaskSettingsに定義されたsTaskかどうか確認

@@ -27,6 +27,7 @@ import {
     EventApi,
     EventDropArg,
     EventInput,
+    ToolbarInput,
 } from "@fullcalendar/core";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
@@ -36,6 +37,8 @@ import interactionPlugin, {
     EventDragStopArg,
     EventResizeDoneArg,
 } from "@fullcalendar/interaction";
+import { format } from "date-fns";
+//
 //
 import {
     DATETIME_CONSTANT,
@@ -51,7 +54,6 @@ import {
     T_ParsedTask,
 } from "../util/lineParser";
 import { enterMsg, exitMsg } from "../debug/debug";
-import { MyTaskSuggest, PlanFollowUpSuggest } from "./suggest";
 import {
     createSTask,
     T_STask,
@@ -60,7 +62,7 @@ import {
     toFullCalendarEvent,
 } from "src/task/task";
 import ReactStarterPlugin from "src";
-import { PLUGIN_NAME } from "./plugin";
+import { PLUGIN_NAME } from "../ui/plugin";
 import { getCache } from "src/util/obsidianUtil";
 
 //
@@ -83,6 +85,8 @@ export class MyCalendarView extends ItemView {
         { type: string; listener: any }
     > = {};
     private workspaceEventRefs: Record<string, EventRef> = {};
+    //
+    mutableCalendarProps = {};
     //
     //
     constructor(
@@ -118,8 +122,15 @@ export class MyCalendarView extends ItemView {
             days: 0,
             milliseconds: 1000 * 60 * 30, //30min
         };
-        const slotMinTime = "07:00:00";
-        const slotMaxTime = "21:00:00";
+        const slotMinTime_date = new Date(0, 0, 0, 7, 0, 0);
+        const slotMaxTime_date = new Date(0, 0, 0, 21, 0, 0);
+        const slotMinTime = format(slotMinTime_date, "HH:mm:SS"); //"07:00:00";
+        const slotMaxTime = format(slotMaxTime_date, "HH:mm:SS"); //"21:00:00";
+        //
+        const slotMinMaxDuration =
+            slotMaxTime_date.getMilliseconds() -
+            slotMinTime_date.getMilliseconds();
+        const slotCount = slotMinMaxDuration / slotDuration.milliseconds;
 
         //
         //register event
@@ -292,7 +303,7 @@ export class MyCalendarView extends ItemView {
             themeSystem: "startdard",
             plugins: [timeGridPlugin, dayGridPlugin, interactionPlugin],
             headerToolbar: {
-                center: "customRefresh,dayGridMonth,timeGridWeek", // buttons for switching between views
+                center: "customRefresh,dayGridMonth,timeGridWeek", //customView,timeGridDayOfWeek,timeGridDay", // buttons for switching between views
             },
             customButtons: {
                 customRefresh: {
@@ -301,6 +312,22 @@ export class MyCalendarView extends ItemView {
                         this.rerendarCalendarItemView.bind(this)(
                             "customRefreshButton"
                         );
+                        const v = this.calendar.getOption("views");
+                        this.calendar.setOption("views", {
+                            ...v,
+                            customView: {
+                                type: "timeGridWeek",
+                                hiddenDays: [0, 6],
+                                buttonText: "customView",
+                            },
+                        });
+
+                        const h =
+                            this.calendar.getOption("headerToolbar") || {};
+                        this.calendar.setOption("headerToolbar", {
+                            ...h,
+                            center: `${h.center},customView`,
+                        });
                     },
                 },
             },
@@ -314,6 +341,21 @@ export class MyCalendarView extends ItemView {
                     //duration: { days: 7 },
                     buttonText: "timeGridWeek",
                 },
+                timeGridDayOfWeek: {
+                    type: "timeGridWeek",
+                    hiddenDays: [0, 6],
+                    buttonText: "timeGridDayOfWeek",
+                },
+                timeGridDay: {
+                    type: "timeGridWeek",
+                    duration: { days: 1 },
+                    buttonText: "timeGridDay",
+                } /*
+                customView: {
+                    type: "timeGridWeek",
+                    //hiddenDays: [0, 6],
+                    buttonText: "customView",
+                },*/,
             },
             locale: "ja", // ロケール設定。
             initialView: "timeGridWeek",
@@ -334,7 +376,6 @@ export class MyCalendarView extends ItemView {
             weekends: true, // 週末を強調表示する。
             //
             titleFormat: {
-                // タイトルのフォーマット。(詳細は後述。※1)
                 year: "numeric",
                 month: "short",
             },
@@ -356,8 +397,9 @@ export class MyCalendarView extends ItemView {
             events: this.fetchEvents.bind(this), //sTasks,
             eventContent: EventContentElement,
         });
-
+        //
         this.calendar.render();
+        //
     }
 
     async onClose() {
