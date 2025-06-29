@@ -59,11 +59,11 @@ import {
     T_STask,
     T_STaskSetting,
     T_STaskSettings,
-    toFullCalendarEvent,
 } from "../task/task.ts";
 import ReactStarterPlugin from "../index.tsx";
 import { PLUGIN_NAME } from "../ui/plugin.ts";
 import { getCache } from "../util/obsidianUtil.ts";
+import { toFullCalendarEvents } from "./calendarUtil.ts";
 
 //
 //
@@ -459,7 +459,7 @@ export class MyCalendarView extends ItemView {
         console.log(enterMsg("fetchEvents"));
         //this.sTasks = await getSTasks(this, [this.emoji]);
         this.sTasks = Object.assign([], this.parentPlugin.sTasks);
-        this.cEvents = this.sTasks.map(toFullCalendarEvent);
+        this.cEvents = toFullCalendarEvents(this.sTasks, { type: ["do"] });
         console.log(exitMsg("fetchEvents:"), this.sTasks);
         return this.cEvents;
     }

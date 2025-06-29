@@ -1,14 +1,10 @@
 import { HeadingCache, TFile } from "obsidian";
 import type { GanttTask } from "wx-react-gantt";
 //
-import { T_STask } from "../task/task.ts";
+import { T_STask, T_STaskFilterSetting } from "../task/task.ts";
 import { getSetDate } from "../util/datetimeUtil.ts";
 import { DeepPartial } from "../util/typeUtil.ts";
 //
-
-type T_STaskFilterSetting = {
-    type?: string[];
-};
 
 const toGanttSummaryTaskIdFromHeading = (
     file: TFile,

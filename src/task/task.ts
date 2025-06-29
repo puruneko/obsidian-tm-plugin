@@ -101,18 +101,11 @@ export const defaultSTaskSettings: T_STaskSettings = [
     },
 ];
 //
-// FullCalendar 形式への変換
-export function toFullCalendarEvent(task: T_STask): EventInput {
-    return {
-        ...task,
-        //id: task.id,
-        title: task.text,
-        start: task.start,
-        end: task.end,
-        extendedProps: { ...task },
-    };
-}
 
+export type T_STaskFilterSetting = {
+    type?: string[];
+};
+//
 /**
  * 全mdファイルの指定emojiを持つタスクを取得する
  * @returns

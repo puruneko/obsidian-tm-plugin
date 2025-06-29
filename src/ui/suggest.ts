@@ -86,13 +86,14 @@ export class MyTaskSuggest extends EditorSuggest<string> {
         //
         this.close();
 
+        const kickString = this.suggests[suggestString];
+
         if (this.followUpSuggest) {
-            this.followUpSuggest.activate();
+            this.followUpSuggest.activate(suggestString, kickString);
             this.followUpSuggest.open();
         }
 
-        // いったん ⏳ を挿入
-        const kickString = this.suggests[suggestString];
+        // いったん emoji を挿入
         editor.replaceRange(kickString, start, end);
         //
     }
@@ -102,6 +103,8 @@ export class PlanFollowUpSuggest extends EditorSuggest<string> {
     private plugin: Plugin;
     //
     isActive: boolean;
+    type: string;
+    prefix: string;
 
     constructor(app: App, plugin: Plugin) {
         super(app);
@@ -109,8 +112,10 @@ export class PlanFollowUpSuggest extends EditorSuggest<string> {
         this.plugin = plugin;
     }
 
-    activate(isActive: boolean = true) {
-        this.isActive = isActive;
+    activate(type: string, prefix: string) {
+        this.isActive = true;
+        this.type = type;
+        this.prefix = prefix;
     }
 
     // 強制的に suggest を表示（カーソル位置は @ の位置）
@@ -135,7 +140,7 @@ export class PlanFollowUpSuggest extends EditorSuggest<string> {
     }
 
     getSuggestions(): string[] {
-        return ["Use helper", "Quick insert (now +1h)"];
+        return ["Quick insert (now +1h)", "Use helper", "From Clipboard"];
     }
 
     renderSuggestion(value: string, el: HTMLElement) {
@@ -154,7 +159,7 @@ export class PlanFollowUpSuggest extends EditorSuggest<string> {
                 //this.insertPos,
                 //this.insertPos
             ).open();
-        } else {
+        } else if (value.startsWith("Quick")) {
             const now = new Date();
             let minutes = now.getMinutes();
             let delta = minutes < 30 ? 30 - minutes : 60 - minutes;
@@ -173,6 +178,24 @@ export class PlanFollowUpSuggest extends EditorSuggest<string> {
                 end,
                 //this.insertPos,
                 //this.insertPos
+            );
+        } else if (value === "From Clipboard") {
+            navigator.clipboard.readText().then(
+                (text) => {
+                    const insertText = text.startsWith(this.prefix)
+                        ? text.replace(this.prefix, "")
+                        : text;
+                    editor.replaceRange(
+                        `${insertText}`,
+                        start,
+                        end,
+                        //this.insertPos,
+                        //this.insertPos
+                    );
+                },
+                () => {
+                    alert("clipboardの読み取り失敗😭");
+                },
             );
         }
         this.close();

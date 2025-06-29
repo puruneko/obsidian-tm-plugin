@@ -56,21 +56,6 @@ export class GanttView extends ItemView {
         //
         //domEvent
         //
-        this.documentEvent["click"] = (evt: MouseEvent) => {
-            //chartエリアがクリックされたかどうか確認
-            const chartElement = document.getElementsByClassName("wx-chart");
-            if (
-                chartElement &&
-                chartElement[0].contains(evt.target as HTMLElement)
-            ) {
-                const wxChart = chartElement[0];
-                console.log("wx-chart clickeddddddddddd");
-                wxChart.scrollTo({ left: 100 });
-                if (this.ref) {
-                    //
-                }
-            }
-        };
         this.documentEvent["mousedown"] = (e: MouseEvent) => {
             if (e.button !== 2) return; // 右クリックのみ
 
@@ -97,19 +82,23 @@ export class GanttView extends ItemView {
         };
 
         this.documentEvent["mouseleave"] = () => {
-            console.log("wx-chart mouseleave", this.dragObj);
-            this.dragObj.elem = null;
-            this.dragObj.isDragging = false;
-            this.dragObj.startX = 0;
-            this.dragObj.scrollLeft = 0;
+            if (this.dragObj.isDragging) {
+                console.log("wx-chart mouseleave", this.dragObj);
+                this.dragObj.elem = null;
+                this.dragObj.isDragging = false;
+                this.dragObj.startX = 0;
+                this.dragObj.scrollLeft = 0;
+            }
         };
 
         this.documentEvent["mouseup"] = () => {
-            console.log("wx-chart mouseup", this.dragObj);
-            this.dragObj.elem = null;
-            this.dragObj.isDragging = false;
-            this.dragObj.startX = 0;
-            this.dragObj.scrollLeft = 0;
+            if (this.dragObj.isDragging) {
+                console.log("wx-chart mouseup", this.dragObj);
+                this.dragObj.elem = null;
+                this.dragObj.isDragging = false;
+                this.dragObj.startX = 0;
+                this.dragObj.scrollLeft = 0;
+            }
         };
         //
         Object.keys(this.documentEvent).forEach((eventType) => {
