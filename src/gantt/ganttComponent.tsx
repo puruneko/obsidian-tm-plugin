@@ -14,10 +14,15 @@ import "./gantt.css";
 import { getData, zoomConfig, simpleColumns } from "../debug/sampleData.ts";
 import { ItemView } from "obsidian";
 import { GanttView } from "./ganttView.ts";
+import { toDateStringFromDateRange } from "../util/datetimeUtil.ts";
+import { rebuildTaskLine, T_ParsedTask } from "../util/lineParser.ts";
+import { T_STaskSetting } from "../task/task.ts";
+import { writeFileByOffset } from "../util/obsidianUtil.ts";
 //
 type T_GanttComponentProps = {
     view: GanttView;
     gTasks: GanttTask[];
+    sTaskSetting: T_STaskSetting;
     requestRefetchSTasks: () => GanttTask;
 };
 const GanttComponent = forwardRef((props: T_GanttComponentProps, ref) => {
@@ -77,7 +82,36 @@ const GanttComponent = forwardRef((props: T_GanttComponentProps, ref) => {
     //
     useEffect(() => {
         if (ganttApiRef.current) {
-            ganttApiRef.current.on("update-task", (ev) => {
+            ganttApiRef.current.on("update-task", async (ev) => {
+                console.log("onGnatt update-task", ev);
+                if (ev.diff) {
+                    const start = ev.task.start;
+                    const end = ev.task.end;
+                    if (start) {
+                        const dateRangeStr = toDateStringFromDateRange({
+                            start,
+                            end,
+                        });
+                        //
+                        const parsedLine = ev.task.parsedLine as T_ParsedTask;
+                        parsedLine.tags.map((tag) => {
+                            if (tag.prefix === props.sTaskSetting.targetTag) {
+                                tag.value = dateRangeStr;
+                            }
+                            return tag;
+                        });
+                        const newLinetext = rebuildTaskLine(parsedLine);
+                        //
+                        const location = ev.task.location;
+                        await writeFileByOffset(
+                            props.view.app,
+                            location.file,
+                            newLinetext,
+                            location.position.start.offset,
+                            location.position.end.offset,
+                        );
+                    }
+                }
                 //
             });
         }
@@ -97,9 +131,23 @@ const GanttComponent = forwardRef((props: T_GanttComponentProps, ref) => {
     }));
     //
     //
-    const handleClick = () => {
+    const handleMififySidebar = () => {
         setColumns((c) => {
-            return c === null ? simpleColumns : null;
+            return !c || c.length === 1
+                ? simpleColumns
+                : [
+                      {
+                          id: "text",
+                          header: "Task name",
+                          width: 200,
+                          flexgrow: 1,
+                      },
+                  ];
+        });
+    };
+    const handleSidebarHidden = () => {
+        setColumns((c) => {
+            return !c ? simpleColumns : false;
         });
     };
 
@@ -109,7 +157,8 @@ const GanttComponent = forwardRef((props: T_GanttComponentProps, ref) => {
     return (
         <div style={{ height: "100%", paddingBottom: "25px" }}>
             <button onClick={props.requestRefetchSTasks}>reloadSTasks</button>
-            <button onClick={handleClick}>toggleSideBar</button>
+            <button onClick={handleMififySidebar}>minify sideBar</button>
+            <button onClick={handleSidebarHidden}>hide sidebar</button>
             <Willow>
                 <Gantt
                     key={`ganttReactKey-${ganttReactKey}`}

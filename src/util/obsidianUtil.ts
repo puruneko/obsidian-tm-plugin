@@ -1,6 +1,7 @@
 import {
     CachedMetadata,
     HeadingCache,
+    Notice,
     Pos as ObsidianPos,
     TFile,
     View,
@@ -143,3 +144,33 @@ export async function getCache(
     console.log("CACHE: null", file, cache);
     return null;
 }
+
+export const writeFileByOffset = async (
+    app: any,
+    file: TFile,
+    insertText: string,
+    startOffset: number,
+    endOffset: number,
+) => {
+    let content: string = await app.vault.read(file);
+    const newContent = `${content.slice(
+        0,
+        startOffset,
+    )}${insertText}${content.slice(endOffset)}`;
+    console.log("writeFileByOffset", app, file, startOffset, endOffset, [
+        insertText,
+        content.slice(startOffset - 50, startOffset),
+        content.slice(endOffset, endOffset + 50),
+    ]);
+    await writeFile(app, file, newContent);
+};
+
+export const writeFile = async (app: any, file: TFile, mdText: string) => {
+    if (true) {
+        //this.isFileLatest(file)) {
+        await app.vault.modify(file, mdText);
+        //this.rerendarCalendar("writeFile");
+    } else {
+        new Notice(`file(${file.basename}) が更新されています`);
+    }
+};

@@ -54,7 +54,8 @@ export default class MyPlugin extends Plugin {
         //
         this.registerView(
             VIEW_TYPE_GANTT,
-            (leaf: WorkspaceLeaf) => (this.view = new GanttView(leaf, this)),
+            (leaf: WorkspaceLeaf) =>
+                (this.view = new GanttView(leaf, this, this.sTaskSettings[1])),
         );
 
         this.app.workspace.onLayoutReady(

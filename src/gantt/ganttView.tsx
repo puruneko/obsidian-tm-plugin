@@ -7,7 +7,7 @@ import type { GanttTask } from "wx-react-gantt";
 //
 import GanttComponent from "./ganttComponent.tsx";
 import MyPlugin from "../index.tsx";
-import { T_STask } from "../task/task.ts";
+import { T_STask, T_STaskSetting } from "../task/task.ts";
 import { PLUGIN_NAME } from "../ui/plugin.ts";
 import { toGanttTasks } from "./ganttUils.ts";
 //
@@ -18,6 +18,7 @@ export class GanttView extends ItemView {
     parentPlugin: MyPlugin;
     ref: any;
     GanttRoot: Root;
+    sTaskSetting: T_STaskSetting;
     //
     sTasks: T_STask[] = [];
     gTasks: GanttTask[] = [];
@@ -33,9 +34,10 @@ export class GanttView extends ItemView {
     };
     //
 
-    constructor(leaf, plugin) {
+    constructor(leaf, plugin, sTaskSetting: T_STaskSetting) {
         super(leaf);
         this.parentPlugin = plugin;
+        this.sTaskSetting = sTaskSetting;
     }
 
     getViewType(): string {
@@ -54,8 +56,6 @@ export class GanttView extends ItemView {
         //
         //domEvent
         //
-        function isChartClicked(evt: MouseEvent) {}
-
         this.documentEvent["click"] = (evt: MouseEvent) => {
             //chartエリアがクリックされたかどうか確認
             const chartElement = document.getElementsByClassName("wx-chart");
@@ -172,6 +172,7 @@ export class GanttView extends ItemView {
                 ref={this.ref}
                 view={this}
                 gTasks={this.gTasks}
+                sTaskSetting={this.sTaskSetting}
                 requestRefetchSTasks={this.requestRefetchSTasks.bind(this)}
             />,
         );

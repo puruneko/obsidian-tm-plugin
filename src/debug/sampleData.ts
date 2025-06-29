@@ -45,15 +45,22 @@ export const bigScales = [
 ];
 
 export const simpleColumns = [
-    { id: "text", header: "Task name", flexgrow: 1 },
-    { id: "start", header: "Start", template: datetimeShortTemplate },
-    { id: "end", header: "end", template: datetimeShortTemplate },
+    { id: "text", header: "Task name", flexgrow: 2, width: 200 },
     {
-        id: "headertail",
-        header: "",
-        width: 0,
-        hidden: true,
+        id: "start",
+        header: "Start",
+        flexgrow: 1,
+        width: 75,
+        template: datetimeShortTemplate,
     },
+    {
+        id: "end",
+        header: "end",
+        flexgrow: 1,
+        width: 75,
+        template: datetimeShortTemplate,
+    },
+    { id: "headertail", header: "", width: 0 },
 ];
 
 const scales = [
@@ -84,7 +91,7 @@ export function getTypedData() {
 }
 
 export const zoomConfig = {
-    level: 6,
+    level: 4,
     levels: [
         {
             minCellWidth: 200,
