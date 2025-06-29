@@ -5,23 +5,32 @@ import { createRoot, Root } from "react-dom/client";
 import { EventRef, ItemView, Menu, Plugin, WorkspaceLeaf } from "obsidian";
 import type { GanttTask } from "wx-react-gantt";
 //
-import GanttComponent from "./ganttComponent";
-import { T_STask, toGanttTask } from "src/task/task";
-import { PLUGIN_NAME } from "src/ui/plugin";
-import ReactStarterPlugin from "src";
+import GanttComponent from "./ganttComponent.tsx";
+import MyPlugin from "../index.tsx";
+import { T_STask } from "../task/task.ts";
+import { PLUGIN_NAME } from "../ui/plugin.ts";
+import { toGanttTasks } from "./ganttUils.ts";
 //
 export const VIEW_TYPE_GANTT = "myplugin-gantt-view";
 
 export class GanttView extends ItemView {
     //private ReactComponent: React.ReactElement;
-    parentPlugin: ReactStarterPlugin;
+    parentPlugin: MyPlugin;
     ref: any;
     GanttRoot: Root;
     //
     sTasks: T_STask[] = [];
     gTasks: GanttTask[] = [];
     //
+    private documentEvent: Record<string, any> = {};
     private workspaceEventRefs: Record<string, EventRef> = {};
+    //
+    private dragObj = {
+        elem: null as HTMLElement | null,
+        isDragging: false,
+        startX: 0,
+        scrollLeft: 0,
+    };
     //
 
     constructor(leaf, plugin) {
@@ -43,6 +52,75 @@ export class GanttView extends ItemView {
 
     onload(): void {
         //
+        //domEvent
+        //
+        function isChartClicked(evt: MouseEvent) {}
+
+        this.documentEvent["click"] = (evt: MouseEvent) => {
+            //chartエリアがクリックされたかどうか確認
+            const chartElement = document.getElementsByClassName("wx-chart");
+            if (
+                chartElement &&
+                chartElement[0].contains(evt.target as HTMLElement)
+            ) {
+                const wxChart = chartElement[0];
+                console.log("wx-chart clickeddddddddddd");
+                wxChart.scrollTo({ left: 100 });
+                if (this.ref) {
+                    //
+                }
+            }
+        };
+        this.documentEvent["mousedown"] = (e: MouseEvent) => {
+            if (e.button !== 2) return; // 右クリックのみ
+
+            const chartElement = document.getElementsByClassName("wx-chart");
+            if (
+                chartElement &&
+                chartElement[0].contains(e.target as HTMLElement)
+            ) {
+                this.dragObj.elem = chartElement[0] as HTMLElement;
+                this.dragObj.isDragging = true;
+                this.dragObj.startX = e.pageX - this.dragObj.elem.offsetLeft;
+                this.dragObj.scrollLeft = this.dragObj.elem.scrollLeft;
+                console.log("wx-chart mousedown", this.dragObj);
+            }
+        };
+
+        this.documentEvent["mousemove"] = (e) => {
+            if (!this.dragObj.isDragging || !this.dragObj.elem) return;
+            e.preventDefault();
+            const x = e.pageX - this.dragObj.elem.offsetLeft;
+            const walk = (x - this.dragObj.startX) * -1; // 逆方向にスクロール
+            this.dragObj.elem.scrollLeft = this.dragObj.scrollLeft + walk;
+            //console.log("wx-chart mousemove", this.dragObj);
+        };
+
+        this.documentEvent["mouseleave"] = () => {
+            console.log("wx-chart mouseleave", this.dragObj);
+            this.dragObj.elem = null;
+            this.dragObj.isDragging = false;
+            this.dragObj.startX = 0;
+            this.dragObj.scrollLeft = 0;
+        };
+
+        this.documentEvent["mouseup"] = () => {
+            console.log("wx-chart mouseup", this.dragObj);
+            this.dragObj.elem = null;
+            this.dragObj.isDragging = false;
+            this.dragObj.startX = 0;
+            this.dragObj.scrollLeft = 0;
+        };
+        //
+        Object.keys(this.documentEvent).forEach((eventType) => {
+            //@ts-ignore(eventType)
+            this.registerDomEvent(
+                document,
+                eventType,
+                this.documentEvent[eventType],
+            );
+        });
+        //
         //pubsub event
         //
         this.workspaceEventRefs[`${PLUGIN_NAME}:request:refetchSTasks`] =
@@ -52,10 +130,10 @@ export class GanttView extends ItemView {
                 async (source) => {
                     console.log(
                         `🌟${PLUGIN_NAME}:broadcast:sTaskUpdated`,
-                        source
+                        source,
                     );
                     this.reloadGTasks();
-                }
+                },
             );
         this.workspaceEventRefs["active-leaf-change"] = this.app.workspace.on(
             "active-leaf-change",
@@ -68,7 +146,7 @@ export class GanttView extends ItemView {
                     // Gantt の再描画や ref.layout() などをここで実行
                     this.reloadGTasks();
                 }
-            }
+            },
         );
         //
         Object.keys(this.workspaceEventRefs).forEach((eventName) => {
@@ -95,7 +173,7 @@ export class GanttView extends ItemView {
                 view={this}
                 gTasks={this.gTasks}
                 requestRefetchSTasks={this.requestRefetchSTasks.bind(this)}
-            />
+            />,
         );
 
         /*
@@ -107,6 +185,12 @@ export class GanttView extends ItemView {
     }
 
     unload(): void {
+        Object.keys(this.documentEvent).forEach((eventName) => {
+            document.removeEventListener(
+                eventName,
+                this.documentEvent[eventName],
+            );
+        });
         Object.keys(this.workspaceEventRefs).forEach((eventName) => {
             this.app.workspace.offref(this.workspaceEventRefs[eventName]);
         });
@@ -117,13 +201,13 @@ export class GanttView extends ItemView {
     requestRefetchSTasks() {
         this.app.workspace.trigger(
             `${PLUGIN_NAME}:request:refetchSTasks`,
-            null
+            null,
         );
     }
 
     reloadGTasks() {
         this.sTasks = Object.assign([], this.parentPlugin.sTasks);
-        this.gTasks = this.sTasks.map(toGanttTask);
+        this.gTasks = toGanttTasks(this.sTasks, { type: ["plan"] });
         if (this.ref) {
             this.ref.current?.rerender();
         }

@@ -9,7 +9,7 @@ import {
     Modal,
     App,
 } from "obsidian";
-import { toDateStringFromDateRange } from "../util/datetimeUtil";
+import { toDateStringFromDateRange } from "../util/datetimeUtil.ts";
 
 // Obsidian の EditorSuggest を継承して独自補完を実装
 export class MyTaskSuggest extends EditorSuggest<string> {
@@ -26,7 +26,7 @@ export class MyTaskSuggest extends EditorSuggest<string> {
         suggests: { [name: string]: string } = {
             do: "⏳",
             plan: "📅",
-        }
+        },
     ) {
         super(plugin.app);
         //
@@ -47,7 +47,7 @@ export class MyTaskSuggest extends EditorSuggest<string> {
     onTrigger(
         cursor: EditorPosition,
         editor: Editor,
-        file: TFile
+        file: TFile,
     ): EditorSuggestTriggerInfo | null {
         const line = editor.getLine(cursor.line);
         const beforeCursor = line.slice(0, cursor.ch);
@@ -55,7 +55,7 @@ export class MyTaskSuggest extends EditorSuggest<string> {
         this.matchCheck = Object.keys(this.suggests).map(
             (suggest) =>
                 lastToken.startsWith(this.prefix) &&
-                `${this.prefix}${suggest}`.startsWith(lastToken)
+                `${this.prefix}${suggest}`.startsWith(lastToken),
         );
 
         if (this.matchCheck.some((x) => x)) {
@@ -117,7 +117,7 @@ export class PlanFollowUpSuggest extends EditorSuggest<string> {
     onTrigger(
         cursor: EditorPosition,
         editor: Editor,
-        file: TFile
+        file: TFile,
     ): EditorSuggestTriggerInfo | null {
         const line = editor.getLine(cursor.line);
         const before = line.slice(0, cursor.ch);
@@ -150,7 +150,7 @@ export class PlanFollowUpSuggest extends EditorSuggest<string> {
                 this.app,
                 editor,
                 start,
-                end
+                end,
                 //this.insertPos,
                 //this.insertPos
             ).open();
@@ -170,7 +170,7 @@ export class PlanFollowUpSuggest extends EditorSuggest<string> {
             editor.replaceRange(
                 `${dateRangeString}`,
                 start,
-                end
+                end,
                 //this.insertPos,
                 //this.insertPos
             );
@@ -192,7 +192,7 @@ class DateRangeModal extends Modal {
         app: App,
         editor: Editor, // テキストを挿入する対象のエディタ
         from: EditorPosition, // 挿入開始位置
-        to: EditorPosition // 挿入終了位置
+        to: EditorPosition, // 挿入終了位置
     ) {
         super(app);
         this.editor = editor;

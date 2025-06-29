@@ -12,7 +12,7 @@ export type T_DatetimeProps<T = number> = {
 };
 export const toDatePropsFromDate = <T = number>(
     d: Date,
-    typeFunc?: (d: any) => T
+    typeFunc?: (d: any) => T,
 ): T_DatetimeProps<T> | null => {
     const _typeFunc = typeFunc ? typeFunc : (d: any) => Number(d) as T;
     try {
@@ -24,6 +24,22 @@ export const toDatePropsFromDate = <T = number>(
             minute: _typeFunc(d.getMinutes()),
             second: _typeFunc(d.getSeconds()),
         };
+    } catch (e) {
+        return null;
+    }
+};
+export const toDateFromDateProps = (
+    dateProps: T_DatetimeProps<any>,
+): Date | null => {
+    try {
+        return new Date(
+            Number(dateProps.year),
+            Number(dateProps.month),
+            Number(dateProps.day),
+            Number(dateProps.hour),
+            Number(dateProps.minute),
+            Number(dateProps.second),
+        );
     } catch (e) {
         return null;
     }
@@ -63,7 +79,7 @@ const regstrDate = `(\\d{4})${DATETIME_CONSTANT.DATE_SEPARATOR_STR}(\\d{1,2})${D
 const regstrTime = `(\\d{1,2})(?:${DATETIME_CONSTANT.TIME_SEPARATOR_STR}(\\d{1,2}))?(?:${DATETIME_CONSTANT.TIME_SEPARATOR_STR}(\\d{1,2}))?`;
 const regexpDateHashtag = new RegExp(
     `(?:${DATETIME_CONSTANT.DATERANGE_SPARATOR_STR})?${regstrDate}(?:${DATETIME_CONSTANT.DATETIME_SEPARATOR_STR}${regstrTime})?`,
-    "g"
+    "g",
 );
 export const toDateStringFromDateProps = (dateProps: any) => {
     const d = toStringFromDateProps(dateProps);
@@ -86,7 +102,7 @@ export const toDateStringFromDateProps = (dateProps: any) => {
  * @returns
  */
 export const toDateRangeFromDateString = (
-    dateString: string
+    dateString: string,
 ): T_DatetimeRange => {
     const dates = Array.from(dateString.matchAll(regexpDateHashtag), (m) => {
         const d = {
@@ -133,4 +149,30 @@ export const toDateStringFromDateRange = (dateRange: {
     }
     const dateHashtagValue = `${startStr}${endStr}`;
     return dateHashtagValue;
+};
+
+//
+//
+//
+//
+//
+export const getSetDate = (
+    baseDate: Date,
+    newValues: Partial<T_DatetimeProps<any>>,
+) => {
+    const newDateProps = Object.entries(
+        toDatePropsFromDate(baseDate) || {},
+    ).reduce((dict, prop) => {
+        const [key, value] = prop;
+        if (key in newValues) {
+            dict[key] = Number(newValues[key]);
+        } else {
+            dict[key] = value;
+        }
+        return dict;
+    }, {});
+    if (!newDateProps || Object.keys(newDateProps).length === 0) {
+        return baseDate;
+    }
+    return toDateFromDateProps(newDateProps as T_DatetimeProps<number>);
 };

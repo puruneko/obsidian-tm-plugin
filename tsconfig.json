@@ -1,7 +1,32 @@
 {
     "compilerOptions": {
-        "baseUrl": ".",
+        "target": "ES2020",
+        "module": "nodenext",
+        "moduleResolution": "nodenext",
+        "jsx": "react-jsx",
+        "strict": true,
+        "esModuleInterop": true,
+        "types": ["obsidian"],
+        "allowJs": true,
+        // Linting
+        "allowImportingTsExtensions": true,
         "allowSyntheticDefaultImports": true,
+        "importHelpers": true,
+        "skipLibCheck": true,
+        "noImplicitAny": false,
+        "noUnusedLocals": false,
+        "noUnusedParameters": false,
+        "noFallthroughCasesInSwitch": true,
+        "isolatedModules": true,
+        //
+        "strictPropertyInitialization": false,
+        "noEmit": true
+    },
+    "include": ["src"]
+
+    /*
+    "compilerOptions": {
+        "baseUrl": ".",
         "inlineSourceMap": true,
         "inlineSources": true,
         "jsx": "react",
@@ -12,17 +37,19 @@
         //"lib": ["dom", "esnext"],
         "allowJs": true,
         "moduleResolution": "node",
+        "noEmit": true
+        // Linting
+        "allowSyntheticDefaultImports": true,
         "importHelpers": true,
         "skipLibCheck": true,
-        /* Linting */
         "noImplicitAny": false,
         "noUnusedLocals": false,
         "noUnusedParameters": false,
         "noFallthroughCasesInSwitch": true,
         "isolatedModules": true,
-        "noEmit": true
         //
     },
     "include": ["src"],
     "exclude": ["node_modules"]
+    */
 }

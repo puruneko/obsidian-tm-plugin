@@ -5,24 +5,37 @@ import {
     TFile,
     View,
 } from "obsidian";
-import { T_TaskLocation } from "src/task/task";
+import { T_TaskLocation } from "../task/task.ts";
+
+export const FirstPosition: ObsidianPos = {
+    start: {
+        line: 0,
+        col: 0,
+        offset: 0,
+    },
+    end: {
+        line: 0,
+        col: 0,
+        offset: 0,
+    },
+};
 
 //
 const getNearestHeader = (
     targetPosition: ObsidianPos,
-    headings: HeadingCache[]
+    headings: HeadingCache[],
 ): HeadingCache | null => {
     const nearestHeader: HeadingCache | null = headings
         .map((heading) => {
-            return heading.position.start.line <= targetPosition.start.line
+            return heading.position.start.offset <= targetPosition.start.offset
                 ? heading
                 : null;
         })
         .reduce((hMax, heading) => {
             let res = hMax;
-            if (heading) {
+            if (heading && hMax) {
                 res =
-                    heading.position.start.offset > hMax.position.start.offset
+                    heading.position.start.offset >= hMax.position.start.offset
                         ? heading
                         : res;
             }
@@ -34,29 +47,48 @@ const getNearestHeader = (
 export const getTaskLocation = (
     file: TFile,
     headingsCache: HeadingCache[],
-    taskPosition: ObsidianPos
+    taskPosition: ObsidianPos,
 ): T_TaskLocation => {
     let headings: HeadingCache[] = [];
     const nearestHeader: HeadingCache | null = getNearestHeader(
         taskPosition,
-        headingsCache
+        headingsCache,
     );
     if (nearestHeader) {
-        headings = Array.from({ length: nearestHeader.level })
-            .map((_, i) => {
-                const level = nearestHeader.level - i;
-                if (level === 0) {
-                    return undefined;
-                }
-                if (level === nearestHeader.level) {
-                    return nearestHeader;
-                }
-                return getNearestHeader(
-                    taskPosition,
-                    headingsCache.filter((heading) => heading.level === level)
+        const voidHeading: HeadingCache = {
+            heading: "",
+            level: -1,
+            position: FirstPosition,
+        } as HeadingCache;
+        let prevHeading: HeadingCache | null = null;
+        headings = Array.from({ length: nearestHeader.level }).map((_, i) => {
+            //const level = nearestHeader.level - i;
+            const level = i + 1;
+            let resHeading = voidHeading;
+            // if (level === 0) {
+            //     resHeading = {
+            //         heading: file.basename,
+            //         level: 0,
+            //         position: FirstPosition,
+            //     } as HeadingCache;
+            //}
+            if (level === nearestHeader.level) {
+                resHeading = nearestHeader;
+            } else {
+                const filteredHeaders = headingsCache.filter(
+                    (heading) =>
+                        heading.level === level &&
+                        heading.position.start.offset >=
+                            (prevHeading?.position.start.offset || 0),
                 );
-            })
-            .filter((h) => h !== undefined);
+                let h = getNearestHeader(taskPosition, filteredHeaders);
+                if (h) {
+                    resHeading = h;
+                }
+            }
+            prevHeading = resHeading.level >= 0 ? resHeading : prevHeading;
+            return resHeading;
+        });
     }
     const link = createHeaderLink(file.basename, nearestHeader?.heading);
     return {
@@ -97,7 +129,7 @@ export async function getCache(
     self: View,
     file: TFile,
     retryCount = 0,
-    maxRetryCount = 4
+    maxRetryCount = 4,
 ): Promise<CachedMetadata | null> {
     let cache = self.app.metadataCache.getFileCache(file);
     if (cache) {

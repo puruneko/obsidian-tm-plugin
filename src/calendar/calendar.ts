@@ -47,23 +47,23 @@ import {
     toDateRangeFromDateString,
     toDateStringFromDateProps,
     toDateStringFromDateRange,
-} from "../util/datetimeUtil";
+} from "../util/datetimeUtil.ts";
 import {
     parseTaskLine,
     rebuildTaskLine,
     T_ParsedTask,
-} from "../util/lineParser";
-import { enterMsg, exitMsg } from "../debug/debug";
+} from "../util/lineParser.ts";
+import { enterMsg, exitMsg } from "../debug/debug.ts";
 import {
     createSTask,
     T_STask,
     T_STaskSetting,
     T_STaskSettings,
     toFullCalendarEvent,
-} from "src/task/task";
-import ReactStarterPlugin from "src";
-import { PLUGIN_NAME } from "../ui/plugin";
-import { getCache } from "src/util/obsidianUtil";
+} from "../task/task.ts";
+import ReactStarterPlugin from "../index.tsx";
+import { PLUGIN_NAME } from "../ui/plugin.ts";
+import { getCache } from "../util/obsidianUtil.ts";
 
 //
 //
@@ -92,7 +92,7 @@ export class MyCalendarView extends ItemView {
     constructor(
         leaf: WorkspaceLeaf,
         parentPlugin: ReactStarterPlugin,
-        sTaskSetting: T_STaskSetting
+        sTaskSetting: T_STaskSetting,
     ) {
         super(leaf);
         this.parentPlugin = parentPlugin;
@@ -111,27 +111,25 @@ export class MyCalendarView extends ItemView {
         return "calendar";
     }
 
-    async onOpen() {
-        const parentElement = this.containerEl.children[1];
-        parentElement.empty();
-        parentElement.createEl("h3", { text: "Hello from the right sidebar!" });
+    onload(): void {
         //
-        const slotDuration: Duration = {
-            years: 0,
-            months: 0,
-            days: 0,
-            milliseconds: 1000 * 60 * 30, //30min
-        };
-        const slotMinTime_date = new Date(0, 0, 0, 7, 0, 0);
-        const slotMaxTime_date = new Date(0, 0, 0, 21, 0, 0);
-        const slotMinTime = format(slotMinTime_date, "HH:mm:SS"); //"07:00:00";
-        const slotMaxTime = format(slotMaxTime_date, "HH:mm:SS"); //"21:00:00";
+        //pubsub event
         //
-        const slotMinMaxDuration =
-            slotMaxTime_date.getMilliseconds() -
-            slotMinTime_date.getMilliseconds();
-        const slotCount = slotMinMaxDuration / slotDuration.milliseconds;
+        this.workspaceEventRefs["active-leaf-change"] = this.app.workspace.on(
+            "active-leaf-change",
+            (leaf) => {
+                if (!leaf) return;
 
+                const view = leaf.view;
+                if (view.getViewType() === VIEW_TYPE_MY_PANEL) {
+                    console.log(
+                        `🎯 ビュー"${VIEW_TYPE_MY_PANEL}"がアクティブになりました！`,
+                    );
+                    this.rerendarCalendarItemView();
+                }
+            },
+        );
+        //
         //
         //register event
         //
@@ -142,10 +140,10 @@ export class MyCalendarView extends ItemView {
                 async (source) => {
                     console.log(
                         `🌟${PLUGIN_NAME}:broadcast:sTaskUpdated`,
-                        source
+                        source,
                     );
                     this.calendar.refetchEvents();
-                }
+                },
             );
         //
         Object.keys(this.workspaceEventRefs).forEach((eventName) => {
@@ -189,7 +187,7 @@ export class MyCalendarView extends ItemView {
                     content,
                     hoverEl,
                     path,
-                    this
+                    this,
                 );
 
                 const leaveHandler = () => {
@@ -201,10 +199,34 @@ export class MyCalendarView extends ItemView {
         };
         document.addEventListener(
             "mouseover",
-            this.documentEventHandler["mouseoverHandler"].listener
+            this.documentEventHandler["mouseoverHandler"].listener,
         );
         //
         //
+    }
+
+    async onOpen() {
+        console.log("onOpen @calendar");
+        //
+        const parentElement = this.containerEl.children[1];
+        parentElement.empty();
+        parentElement.createEl("h3", { text: "Hello from the right sidebar!" });
+        //
+        const slotDuration: Duration = {
+            years: 0,
+            months: 0,
+            days: 0,
+            milliseconds: 1000 * 60 * 30, //30min
+        };
+        const slotMinTime_date = new Date(0, 0, 0, 7, 0, 0);
+        const slotMaxTime_date = new Date(0, 0, 0, 21, 0, 0);
+        const slotMinTime = format(slotMinTime_date, "HH:mm:SS"); //"07:00:00";
+        const slotMaxTime = format(slotMaxTime_date, "HH:mm:SS"); //"21:00:00";
+        //
+        const slotMinMaxDuration =
+            slotMaxTime_date.getMilliseconds() -
+            slotMinTime_date.getMilliseconds();
+        const slotCount = slotMinMaxDuration / slotDuration.milliseconds;
 
         //
         //wrapper settings
@@ -241,7 +263,7 @@ export class MyCalendarView extends ItemView {
                 "my-event-title",
                 "fc-internal-link",
                 "cm-hmd-internal-link",
-                "is-live-preview"
+                "is-live-preview",
             );
             titleElement.addEventListener("click", (_) => {
                 this.jumpToFilePosition(location.file, location.position);
@@ -277,7 +299,7 @@ export class MyCalendarView extends ItemView {
             })}`;
             if (!navigator.clipboard) {
                 alert(
-                    "残念。このブラウザはクリップボードに対応していません..."
+                    "残念。このブラウザはクリップボードに対応していません...",
                 );
                 return;
             }
@@ -286,12 +308,12 @@ export class MyCalendarView extends ItemView {
                 () => {
                     //alert(`コピー成功👍:${dateRangeString}`);
                     new Notice(
-                        `日付文字列をコピーしました\n${dateRangeString}`
+                        `日付文字列をコピーしました\n${dateRangeString}`,
                     );
                 },
                 () => {
                     alert("コピー失敗😭");
-                }
+                },
             );
         };
         //
@@ -309,9 +331,12 @@ export class MyCalendarView extends ItemView {
                 customRefresh: {
                     text: "🔄reload",
                     click: () => {
-                        this.rerendarCalendarItemView.bind(this)(
-                            "customRefreshButton"
-                        );
+                        const h =
+                            this.calendar.getOption("headerToolbar") || {};
+                        this.calendar.setOption("headerToolbar", {
+                            ...h,
+                            center: `${h.center},customView`,
+                        });
                         const v = this.calendar.getOption("views");
                         this.calendar.setOption("views", {
                             ...v,
@@ -321,13 +346,10 @@ export class MyCalendarView extends ItemView {
                                 buttonText: "customView",
                             },
                         });
-
-                        const h =
-                            this.calendar.getOption("headerToolbar") || {};
-                        this.calendar.setOption("headerToolbar", {
-                            ...h,
-                            center: `${h.center},customView`,
-                        });
+                        //
+                        this.rerendarCalendarItemView.bind(this)(
+                            "customRefreshButton",
+                        );
                     },
                 },
             },
@@ -403,9 +425,11 @@ export class MyCalendarView extends ItemView {
     }
 
     async onClose() {
+        console.log("onClose @calendar");
         // クリーンアップ処理があればここに
     }
     onunload(): void {
+        console.log("onunload @calendar");
         //document.removeEventListener("mouseover", this.mouseoverHandler);
         Object.keys(this.documentEventHandler).forEach((name) => {
             const { type, listener } = this.documentEventHandler[name];
@@ -416,8 +440,6 @@ export class MyCalendarView extends ItemView {
         });
         //
         this.calendar.destroy();
-        this.calendar = null;
-        this.calendar = undefined;
     }
 
     isFileLatest(targetFile: TFile) {
@@ -447,7 +469,7 @@ export class MyCalendarView extends ItemView {
         if (this.calendar) {
             this.app.workspace.trigger(
                 `${PLUGIN_NAME}:request:refetchSTasks`,
-                null
+                null,
             );
             //this.calendar.refetchEvents();
             //this.calendar.render();
@@ -546,10 +568,10 @@ export class MyCalendarView extends ItemView {
         };
         const pointedElements = document.elementsFromPoint(
             evt.clientX,
-            evt.clientY
-        );
+            evt.clientY,
+        ) as HTMLElement[];
         if (viewType === "timeGrid") {
-            Array.from(pointedElements).forEach((elem: HTMLElement) => {
+            Array.from(pointedElements).forEach((elem) => {
                 if (
                     dropPointDatetime.time === "" &&
                     elem.hasClass("fc-timegrid-slot") &&
@@ -588,13 +610,13 @@ export class MyCalendarView extends ItemView {
         //
         if (dropPointDatetime.time !== "" && dropPointDatetime.date !== "") {
             const startDate = new Date(
-                `${dropPointDatetime.date}T${dropPointDatetime.time}`
+                `${dropPointDatetime.date}T${dropPointDatetime.time}`,
             );
             const slotDurationMilliseconds =
                 (this.calendar.getOption("slotDuration") as Duration)
                     ?.milliseconds || 1000 * 60 * 30;
             const endDate = new Date(
-                startDate.getTime() + slotDurationMilliseconds
+                startDate.getTime() + slotDurationMilliseconds,
             );
             const dateRange = { start: startDate, end: endDate };
             const dateRangeStr = toDateStringFromDateRange(dateRange);
@@ -616,13 +638,13 @@ export class MyCalendarView extends ItemView {
                     start: {
                         ...departureSelectedRange.from,
                         offset: departureEditor.posToOffset(
-                            departureSelectedRange.from
+                            departureSelectedRange.from,
                         ),
                     },
                     end: {
                         ...departureSelectedRange.to,
                         offset: departureEditor.posToOffset(
-                            departureSelectedRange.to
+                            departureSelectedRange.to,
                         ),
                     },
                 };
@@ -634,7 +656,7 @@ export class MyCalendarView extends ItemView {
                 let selectedListItems: ListItemCache[] = [];
                 for (let item of listItems) {
                     console.debug(
-                        `(${item.position.start.offset} <= ${departureSelectedPosition.start.offset} && ${departureSelectedPosition.start.offset} <= ${item.position.end.offset}) || (${item.position.start.offset} <= ${departureSelectedPosition.end.offset} && ${departureSelectedPosition.start.offset} <= ${item.position.end.offset})`
+                        `(${item.position.start.offset} <= ${departureSelectedPosition.start.offset} && ${departureSelectedPosition.start.offset} <= ${item.position.end.offset}) || (${item.position.start.offset} <= ${departureSelectedPosition.end.offset} && ${departureSelectedPosition.start.offset} <= ${item.position.end.offset})`,
                     );
                     if (
                         (item.position.start.offset <=
@@ -656,7 +678,7 @@ export class MyCalendarView extends ItemView {
                 let newContent = content;
                 selectedListItems
                     .sort(
-                        (a, b) => b.position.end.offset - a.position.end.offset
+                        (a, b) => b.position.end.offset - a.position.end.offset,
                     )
                     .forEach((selectedListItem) => {
                         let tmpSTasks = createSTask(
@@ -666,18 +688,21 @@ export class MyCalendarView extends ItemView {
                             departureFile,
                             content,
                             undefined,
-                            { tag: targetTag, dateRange: dateRange }
+                            { tag: targetTag, dateRange: dateRange },
                         );
                         console.log("tmpSTasks", tmpSTasks);
                         if (tmpSTasks && tmpSTasks.length > 0) {
                             if (tmpSTasks.length !== 1) {
                                 new Notice(
-                                    `同一タスクに複数の${targetTag}が設定されています`
+                                    `同一タスクに複数の${targetTag}が設定されています`,
                                 );
                                 return;
                             }
                             const tmpSTask = tmpSTasks[0];
                             const { parsedLine } = tmpSTask;
+                            if (!parsedLine) {
+                                return;
+                            }
                             parsedLine.tags = parsedLine.tags.map((tag) => {
                                 if (tag.prefix === targetTag) {
                                     tag.value = dateRangeStr;
@@ -688,9 +713,9 @@ export class MyCalendarView extends ItemView {
                             console.log("newLinetext", newLinetext, parsedLine);
                             newContent = `${newContent.slice(
                                 0,
-                                tmpSTask.location.position.start.offset
+                                tmpSTask.location.position.start.offset,
                             )}${newLinetext}${newContent.slice(
-                                tmpSTask.location.position.end.offset
+                                tmpSTask.location.position.end.offset,
                             )}`;
                             /*
                             newContent = `${newContent.slice(
@@ -710,12 +735,12 @@ export class MyCalendarView extends ItemView {
     }
 
     onMoveCalenderEvent = async (
-        info: EventDropArg | EventDragStopArg | EventResizeDoneArg
+        info: EventDropArg | EventDragStopArg | EventResizeDoneArg,
     ) => {
         console.log(
             "DEBUG!!!!!!onMoveCalenderEvent",
             info.event.extendedProps,
-            info.event.extendedProps["aaa"]
+            info.event.extendedProps["aaa"],
         );
         //allDay処理
         if ("delta" in info && "oldEvent" in info) {
@@ -731,7 +756,9 @@ export class MyCalendarView extends ItemView {
             if (oldEvent.allDay && delta.milliseconds && info.event.start) {
                 const defaultEventTimeFlame = 1000 * 60 * 60 * 1;
                 info.event.setEnd(
-                    new Date(info.event.start.getTime() + defaultEventTimeFlame)
+                    new Date(
+                        info.event.start.getTime() + defaultEventTimeFlame,
+                    ),
                 );
             }
         }
@@ -745,7 +772,7 @@ export class MyCalendarView extends ItemView {
             //
             const parsedLine = this.getCEventInfoProps(
                 fcEvent,
-                "parsedLine"
+                "parsedLine",
             ) as T_ParsedTask;
             parsedLine.tags.map((tag) => {
                 if (tag.prefix === this.sTaskSetting.targetTag) {
@@ -760,7 +787,7 @@ export class MyCalendarView extends ItemView {
             let content = await this.app.vault.read(location.file);
             content = `${content.slice(
                 0,
-                location.position.start.offset
+                location.position.start.offset,
             )}${newLinetext}${content.slice(location.position.end.offset)}`;
             // ファイルを上書き保存
             await this.writeFile(location.file, content);

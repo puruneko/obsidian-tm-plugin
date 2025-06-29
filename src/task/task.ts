@@ -9,19 +9,19 @@ import {
 import type { EventInput } from "@fullcalendar/core";
 import type { GanttTask } from "wx-react-gantt";
 //
-import { enterMsg, exitMsg } from "src/debug/debug";
+import { enterMsg, exitMsg } from "../debug/debug.ts";
 import {
     T_DatetimeRange,
     toDateRangeFromDateString,
     toDateStringFromDateRange,
-} from "src/util/datetimeUtil";
+} from "../util/datetimeUtil.ts";
 import {
     genParsedTagFromSetting,
     parseTaskLine,
     T_ParsedTask,
     T_TaskLineParseSettings,
-} from "src/util/lineParser";
-import { getCache, getTaskLocation } from "src/util/obsidianUtil";
+} from "../util/lineParser.ts";
+import { getCache, getTaskLocation } from "../util/obsidianUtil.ts";
 //
 
 //
@@ -78,7 +78,7 @@ export type T_TaskLocation = {
 };
 //
 export type T_STask = T_Task & {
-    start?: Date;
+    start: Date;
     end?: Date;
     allDay?: boolean;
 };
@@ -113,18 +113,6 @@ export function toFullCalendarEvent(task: T_STask): EventInput {
     };
 }
 
-// Gantt形式への変換（name = title）
-export function toGanttTask(task: T_STask): GanttTask {
-    return {
-        ...task,
-        //id: task.id,
-        text: task.text,
-        start: task.start,
-        end: task.end,
-        data: { ...task }, // ← カスタムプロパティを丸ごと載せる
-    };
-}
-
 /**
  * 全mdファイルの指定emojiを持つタスクを取得する
  * @returns
@@ -132,7 +120,7 @@ export function toGanttTask(task: T_STask): GanttTask {
 export async function getSTasks(
     self: View | any,
     sTaskSettings: T_STaskSettings,
-    taskLineParseSettings?: T_TaskLineParseSettings
+    taskLineParseSettings?: T_TaskLineParseSettings,
 ) {
     console.log(enterMsg("getSTasks"));
     //
@@ -142,22 +130,25 @@ export async function getSTasks(
     const pageContents = await Promise.all(
         files.map((file) => {
             return self.app.vault.read(file);
-        })
+        }),
     );
     const caches = await Promise.all(
         files.map((file) => {
             return getCache(self, file);
-        })
+        }),
     );
-    const metas = files.reduce((dict, file, i) => {
-        const filename: string = file.basename;
-        dict[filename] = {
-            file,
-            cache: caches[i],
-            content: pageContents[i],
-        };
-        return dict;
-    }, {} as { [key: string]: any });
+    const metas = files.reduce(
+        (dict, file, i) => {
+            const filename: string = file.basename;
+            dict[filename] = {
+                file,
+                cache: caches[i],
+                content: pageContents[i],
+            };
+            return dict;
+        },
+        {} as { [key: string]: any },
+    );
     //
     console.log("metas:", metas);
     //
@@ -178,7 +169,7 @@ export async function getSTasks(
                         headings,
                         file,
                         content,
-                        taskLineParseSettings
+                        taskLineParseSettings,
                     );
                     return sTask;
                 })
@@ -210,7 +201,7 @@ export function createSTask(
     file: TFile,
     mdContent: string,
     taskLineParseSettings?: T_TaskLineParseSettings,
-    dateRangeFallback?: { dateRange: T_DatetimeRange; tag: string }
+    dateRangeFallback?: { dateRange: T_DatetimeRange; tag: string },
 ): T_STask[] | null {
     let sTasks: T_STask[] | null = null;
 
@@ -219,7 +210,7 @@ export function createSTask(
         headings,
         file,
         mdContent,
-        taskLineParseSettings
+        taskLineParseSettings,
     );
     //listItemCacheがtaskではない場合、null
     if (!task) {
@@ -233,13 +224,13 @@ export function createSTask(
 
     //sTaskSettingsに定義されたsTaskかどうか確認
     const sTaskTags = sTaskSettings.map((ts) => ts.targetTag);
-    const parsedSTaskTags = [];
-    task.parsedLine.tags.forEach((tag) => {
+    const parsedSTaskTags: any[] = [];
+    task.parsedLine?.tags.forEach((tag) => {
         const sTaskTagIndex = sTaskTags.indexOf(tag.prefix);
         if (sTaskTagIndex !== -1) {
             if (parsedSTaskTags.some((t) => t.prefix === tag.prefix)) {
                 console.error(
-                    `1タスクに同一タグ(${tag.prefix})が複数設定されています(${task.text})`
+                    `1タスクに同一タグ(${tag.prefix})が複数設定されています(${task.text})`,
                 );
                 return null;
             }
@@ -260,9 +251,9 @@ export function createSTask(
             const dateRange = dateRangeFallback.dateRange;
             const tag = genParsedTagFromSetting(
                 { prefix: dateRangeFallback.tag },
-                { value: toDateStringFromDateRange(dateRange) }
+                { value: toDateStringFromDateRange(dateRange) },
             );
-            task.parsedLine.tags.push(tag);
+            task.parsedLine?.tags.push(tag);
             parsedSTaskTags.push({
                 ...sTaskSettings[sTaskTagIndex],
                 ...tag,
@@ -304,7 +295,7 @@ export function createTask(
     headings: HeadingCache[],
     file: TFile,
     mdContent: string,
-    taskLineParseSettings?: T_TaskLineParseSettings
+    taskLineParseSettings?: T_TaskLineParseSettings,
 ): T_Task | null {
     let task: T_Task | null = null;
     // 各リスト項目を順に処理
@@ -313,7 +304,7 @@ export function createTask(
         // 対応する行のテキストを取得
         const linetext = mdContent.slice(
             position.start.offset,
-            position.end.offset
+            position.end.offset,
         );
         //
         const parsedLine = parseTaskLine(linetext, taskLineParseSettings);
@@ -321,7 +312,7 @@ export function createTask(
             console.error(
                 "parse failed @createSTask",
                 linetext,
-                taskLineParseSettings
+                taskLineParseSettings,
             );
             return null;
         }

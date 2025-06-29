@@ -7,72 +7,13 @@ import {
     WorkspaceLeaf,
     EventRef,
 } from "obsidian";
-import React from "react";
-import ReactDOM from "react-dom";
 
-import { DATETIME_CONSTANT } from "./util/datetimeUtil";
-import { MyCalendarView, VIEW_TYPE_MY_PANEL } from "./calendar/calendar";
-import { MyTaskSuggest, PlanFollowUpSuggest } from "./ui/suggest";
-import { GanttView, VIEW_TYPE_GANTT } from "./gantt/ganttView";
-import { defaultSTaskSettings, getSTasks, T_STask } from "./task/task";
-import { T_ParsedTask } from "./util/lineParser";
-import { PLUGIN_NAME } from "./ui/plugin";
-
-/*
-const VIEW_TYPE = "react-view";
-
-class MyReactView extends ItemView {
-private reactComponent: React.ReactElement;
-plugin;
-ref: any;
-
-constructor(leaf, plugin) {
-super(leaf);
-this.plugin = plugin;
-}
-
-getViewType(): string {
-return VIEW_TYPE;
-}
-
-getDisplayText(): string {
-return "Dice Roller";
-}
-
-getIcon(): string {
-return "calendar-with-checkmark";
-}
-
-onload(): void {
-console.log("onLoad###");
-
-this.registerEvent(
-this.app.workspace.on("active-leaf-change", (leaf) => {
-if (!leaf) return;
-
-const view = leaf.view;
-if (view.getViewType() === VIEW_TYPE) {
-console.log("🎯 自分のビューがアクティブになりました！");
-// Gantt の再描画や ref.layout() などをここで実行
-if (this.ref) {
-this.ref.current?.rerender();
-}
-}
-})
-);
-}
-
-async onOpen(): Promise<void> {
-console.log("onOpen!!!!");
-// ref を取得
-this.ref = React.createRef<typeof DiceRoller>();
-this.reactComponent = React.createElement(DiceRoller, { ref: this.ref }); // ✅ JSXと違いこちらではrefは props に入らない
-
-ReactDOM.render(this.reactComponent, (this as any).contentEl);
-
-}
-}
-*/
+import { DATETIME_CONSTANT } from "./util/datetimeUtil.ts";
+import { MyCalendarView, VIEW_TYPE_MY_PANEL } from "./calendar/calendar.ts";
+import { MyTaskSuggest, PlanFollowUpSuggest } from "./ui/suggest.ts";
+import { GanttView, VIEW_TYPE_GANTT } from "./gantt/ganttView.tsx";
+import { defaultSTaskSettings, getSTasks, T_STask } from "./task/task.ts";
+import { PLUGIN_NAME } from "./ui/plugin.ts";
 
 interface MyPluginSettings {
     mySetting: string;
@@ -92,7 +33,7 @@ const DEFAULT_SETTINGS: MyPluginSettings = {
 //
 
 //
-export default class ReactStarterPlugin extends Plugin {
+export default class MyPlugin extends Plugin {
     private view: GanttView;
     settings: MyPluginSettings;
     obisidianLastClickedEvent: any = null;
@@ -113,11 +54,11 @@ export default class ReactStarterPlugin extends Plugin {
         //
         this.registerView(
             VIEW_TYPE_GANTT,
-            (leaf: WorkspaceLeaf) => (this.view = new GanttView(leaf, this))
+            (leaf: WorkspaceLeaf) => (this.view = new GanttView(leaf, this)),
         );
 
         this.app.workspace.onLayoutReady(
-            this.generateOnLayoutReady(VIEW_TYPE_GANTT, this)
+            this.generateOnLayoutReady(VIEW_TYPE_GANTT, this),
         ); //this.onGanttLayoutReady.bind(this));
         this.viewsType.push(VIEW_TYPE_GANTT);
 
@@ -132,54 +73,14 @@ export default class ReactStarterPlugin extends Plugin {
         //
         this.registerView(
             VIEW_TYPE_MY_PANEL,
-            (leaf) => new MyCalendarView(leaf, this, this.sTaskSettings[0])
+            (leaf) => new MyCalendarView(leaf, this, this.sTaskSettings[0]),
         );
 
         this.app.workspace.onLayoutReady(
-            this.generateOnLayoutReady(VIEW_TYPE_MY_PANEL, this)
+            this.generateOnLayoutReady(VIEW_TYPE_MY_PANEL, this),
         );
         this.viewsType.push(VIEW_TYPE_MY_PANEL);
 
-        /*
-this.addRibbonIcon("calendar", "Open My Calendar", () => {
-this.app.workspace.getRightLeaf(false)?.setViewState({
-type: VIEW_TYPE_MY_PANEL,
-active: true,
-});
-});
-*/
-        //
-        //side pannelへganttを登録
-        //
-        /*
-this.registerView(GANTT_VIEW_TYPE, (leaf) => new GanttView(leaf));
-
-this.addRibbonIcon("bar-chart-3", "Open Gantt View", async () => {
-const leaf = this.app.workspace.getRightLeaf(false);
-if (leaf) {
-await leaf.setViewState({
-type: GANTT_VIEW_TYPE,
-active: true,
-});
-this.app.workspace.revealLeaf(leaf);
-}
-});
-
-this.addCommand({
-id: "open-ts-gantt",
-name: "Open Gantt Chart",
-callback: async () => {
-const leaf = this.app.workspace.getRightLeaf(false);
-if (leaf) {
-await leaf.setViewState({
-type: GANTT_VIEW_TYPE,
-active: true,
-});
-this.app.workspace.revealLeaf(leaf);
-}
-},
-});
-*/
         //
         //エディタのsuggest（時間入力のヘルパー）
         //
@@ -202,10 +103,9 @@ this.app.workspace.revealLeaf(leaf);
             this.registerDomEvent(
                 document,
                 eventType,
-                this.documentEvent[eventType]
+                this.documentEvent[eventType],
             );
         });
-        this.registerDomEvent(document, "click", this.clickHandler);
 
         //
         //pubsub event
@@ -216,15 +116,15 @@ this.app.workspace.revealLeaf(leaf);
                 async (source) => {
                     console.log(
                         `▶${PLUGIN_NAME}:request:refetchSTasks`,
-                        source
+                        source,
                     );
                     await this.refetchSTasks();
                     //sTaskが最新化されたら各viewItemに通知
                     this.app.workspace.trigger(
                         `${PLUGIN_NAME}:broadcast:sTaskUpdated`,
-                        null
+                        null,
                     );
-                }
+                },
             );
         //
         Object.keys(this.workspaceEventRefs).forEach((eventName) => {
@@ -237,7 +137,7 @@ this.app.workspace.revealLeaf(leaf);
     }
 
     generateOnLayoutReady(VIEW_TYPE: string, self: any) {
-        function onLayoutReady() {
+        function onLayoutReady(this: typeof self) {
             if (this.app.workspace.getLeavesOfType(VIEW_TYPE).length) {
                 return;
             }
@@ -248,21 +148,11 @@ this.app.workspace.revealLeaf(leaf);
         return onLayoutReady.bind(self);
     }
 
-    /*
-onGanttLayoutReady(): void {
-if (this.app.workspace.getLeavesOfType(VIEW_TYPE_GANTT).length) {
-return;
-}
-this.app.workspace.getRightLeaf(false).setViewState({
-type: VIEW_TYPE_GANTT,
-});
-}
-*/
-
     async refetchSTasks() {
         console.log("> plugin.refetchSTasks");
         this.sTasks = await getSTasks(this, this.sTaskSettings);
-        console.log("< plugin.refetchSTasks", this.sTasks);
+        console.log("🌟latest sTasks", this.sTasks);
+        console.log("< plugin.refetchSTasks");
     }
 
     onunload() {
@@ -279,19 +169,11 @@ type: VIEW_TYPE_GANTT,
         this.settings = Object.assign(
             {},
             DEFAULT_SETTINGS,
-            await this.loadData()
+            await this.loadData(),
         );
     }
 
     async saveSettings() {
         await this.saveData(this.settings);
     }
-
-    //
-    //
-    //
-
-    //
-    //
-    //
 }

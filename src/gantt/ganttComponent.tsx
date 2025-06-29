@@ -11,10 +11,9 @@ import type { GanttTask } from "wx-react-gantt";
 import "wx-react-gantt/dist/gantt.css";
 import "./gantt.css";
 //
-import { getData, zoomConfig, simpleColumns } from "../debug/sampleData";
-import { T_STask } from "src/task/task";
+import { getData, zoomConfig, simpleColumns } from "../debug/sampleData.ts";
 import { ItemView } from "obsidian";
-import { GanttView } from "./ganttView";
+import { GanttView } from "./ganttView.ts";
 //
 type T_GanttComponentProps = {
     view: GanttView;
@@ -25,7 +24,8 @@ const GanttComponent = forwardRef((props: T_GanttComponentProps, ref) => {
     //
     const [ganttReactKey, setGanttReactKey] = useState(1);
     //
-    const ganttApiRef = useRef(null);
+    const ganttApiRef = useRef<typeof Gantt>(null);
+    const ganttRef = useRef<HTMLElement | null>(null);
     /*
   const [ganttData, setGanttData] = useState<any>({
     tasks: [],
@@ -33,7 +33,7 @@ const GanttComponent = forwardRef((props: T_GanttComponentProps, ref) => {
     scales: [],
   });
   */
-    const [columns, setColumns] = useState(simpleColumns);
+    const [columns, setColumns] = useState<any>(simpleColumns);
     //
     const ganttData = getData();
 
@@ -44,6 +44,35 @@ const GanttComponent = forwardRef((props: T_GanttComponentProps, ref) => {
         //
         //const data = getData();
         //setGanttData(data);
+        //
+        //scrolling
+        /*
+        const scrollToToday = () => {
+            const container = containerRef.current;
+            if (!container) return;
+
+            const today = new Date();
+            const todayTimestamp = today.getTime();
+
+            // タイムラインの開始・終了を仮定（例：1週間）
+            const start = new Date(today);
+            start.setDate(start.getDate() - 3);
+            const end = new Date(today);
+            end.setDate(end.getDate() + 3);
+
+            const totalDuration = end.getTime() - start.getTime();
+            const offset = todayTimestamp - start.getTime();
+
+            const scrollRatio = offset / totalDuration;
+            const scrollX =
+                container.scrollWidth * scrollRatio - container.clientWidth / 2;
+
+            container.scrollLeft = scrollX;
+        };
+
+        // 初期描画後にスクロール
+        setTimeout(scrollToToday, 100);
+        */
     }, []);
     //
     useEffect(() => {
@@ -53,6 +82,10 @@ const GanttComponent = forwardRef((props: T_GanttComponentProps, ref) => {
             });
         }
     }, [ganttApiRef.current]);
+    //
+    useEffect(() => {
+        //
+    }, [ganttRef.current]);
 
     //
     //
@@ -81,6 +114,7 @@ const GanttComponent = forwardRef((props: T_GanttComponentProps, ref) => {
                 <Gantt
                     key={`ganttReactKey-${ganttReactKey}`}
                     api={ganttApiRef}
+                    ref={ganttRef}
                     //tasks={ganttData.tasks}
                     //links={ganttData.links}
                     tasks={props.view.gTasks}

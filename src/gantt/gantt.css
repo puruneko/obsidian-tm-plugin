@@ -1,8 +1,59 @@
 /* Add task ボタンを非表示にする */
-.gantt_add_task_button {
-  display: none !important;
+.wx-add-task .gantt_add_task_button {
+    display: none !important;
+    visibility: hidden !important;
+    max-width: 0 !important;
+    max-height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
 }
 [data-col-id="action"],
 [data-header-id="action"] {
-  display: none !important;
+    display: none !important;
+    visibility: hidden !important;
+    max-width: 0 !important;
+    max-height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+}
+
+[data-header-id="headertail"],
+[data-col-id="headertail"] {
+    display: none !important;
+    visibility: hidden !important;
+    max-width: 0 !important;
+    max-height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    &::before {
+        display: none !important;
+        visibility: hidden !important;
+        max-width: 0 !important;
+        max-height: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        border: none !important;
+    }
+    &::after {
+        display: none !important;
+        visibility: hidden !important;
+        max-width: 0 !important;
+        max-height: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        border: none !important;
+    }
+}
+
+.wx-progress-marker {
+    display: none !important;
+    visibility: hidden !important;
+    max-width: 0 !important;
+    max-height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
 }
