@@ -25,6 +25,7 @@ import {
     Duration,
     DurationInput,
     EventApi,
+    EventContentArg,
     EventDropArg,
     EventInput,
     ToolbarInput,
@@ -64,6 +65,8 @@ import ReactStarterPlugin from "../index.tsx";
 import { PLUGIN_NAME } from "../ui/plugin.ts";
 import { getCache } from "../util/obsidianUtil.ts";
 import { toFullCalendarEvents } from "./calendarUtil.ts";
+//
+import "./calendar.css";
 
 //
 //
@@ -244,37 +247,6 @@ export class MyCalendarView extends ItemView {
         });
         resizeObserver.observe(parentElement);
         //
-        /**
-         * eventcontent in calendar
-         * @param arg
-         * @returns
-         */
-        const EventContentElement = (arg: any) => {
-            const cEventInfoObj = arg.event;
-            const location = this.getCEventInfoProps(cEventInfoObj, "location");
-            const title = this.getCEventInfoProps(cEventInfoObj, "title");
-
-            // HTML要素を作成
-            const eventContainer = document.createElement("div");
-            const titleElement = document.createElement("span");
-            //
-            titleElement.textContent = title;
-            titleElement.classList.add(
-                "my-event-title",
-                "fc-internal-link",
-                "cm-hmd-internal-link",
-                "is-live-preview",
-            );
-            titleElement.addEventListener("click", (_) => {
-                this.jumpToFilePosition(location.file, location.position);
-            });
-            titleElement.dataset.notepath = location.file.path || "";
-
-            eventContainer.appendChild(titleElement);
-            eventContainer.classList.add("my-event-container");
-            return { domNodes: [eventContainer] };
-        };
-        //
         //event drag handler
         //
         const handleCalenderEventResized = (info: EventResizeDoneArg) => {
@@ -317,6 +289,38 @@ export class MyCalendarView extends ItemView {
             );
         };
         //
+        /**
+         * eventcontent in calendar
+         * @param arg
+         * @returns
+         */
+        const EventContentComponent = (arg: EventContentArg) => {
+            const cEventInfoObj = arg.event;
+            const location = this.getCEventInfoProps(cEventInfoObj, "location");
+            const title = this.getCEventInfoProps(cEventInfoObj, "title");
+
+            // HTML要素を作成
+            const eventContainer = document.createElement("div");
+            const titleElement = document.createElement("div");
+            //
+            titleElement.textContent = title;
+            // titleElement.title = title;
+            titleElement.classList.add(
+                "my-calendar-event-title",
+                "fc-internal-link",
+                "cm-hmd-internal-link",
+                "is-live-preview",
+            );
+            titleElement.addEventListener("click", (_) => {
+                this.jumpToFilePosition(location.file, location.position);
+            });
+            titleElement.dataset.notepath = location.file.path || "";
+
+            eventContainer.appendChild(titleElement);
+            eventContainer.classList.add("my-event-container");
+            return { domNodes: [eventContainer] };
+        };
+        //
         // init calendar
         //
         this.calendar = new Calendar(calendarEl, {
@@ -331,22 +335,6 @@ export class MyCalendarView extends ItemView {
                 customRefresh: {
                     text: "🔄reload",
                     click: () => {
-                        const h =
-                            this.calendar.getOption("headerToolbar") || {};
-                        this.calendar.setOption("headerToolbar", {
-                            ...h,
-                            center: `${h.center},customView`,
-                        });
-                        const v = this.calendar.getOption("views");
-                        this.calendar.setOption("views", {
-                            ...v,
-                            customView: {
-                                type: "timeGridWeek",
-                                hiddenDays: [0, 6],
-                                buttonText: "customView",
-                            },
-                        });
-                        //
                         this.rerendarCalendarItemView.bind(this)(
                             "customRefreshButton",
                         );
@@ -417,7 +405,7 @@ export class MyCalendarView extends ItemView {
             //eventReceive: handleElementDroppedOnCalendar.bind(this),
             //
             events: this.fetchEvents.bind(this), //sTasks,
-            eventContent: EventContentElement,
+            eventContent: EventContentComponent,
         });
         //
         this.calendar.render();

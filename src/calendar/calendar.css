@@ -1,0 +1,27 @@
+.my-event-container {
+    display: block;
+    width: 100%;
+    /* overflow: hidden; */
+}
+.my-event-container:hover {
+    width: fit-content;
+    background-color: red;
+}
+.my-calendar-event-title {
+    display: block; /* または block/flex でもOK */
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    /* transition: all 0.2s ease; */
+}
+
+.my-calendar-event-title:hover {
+    width: 200%;
+    max-width: 200%;
+    white-space: normal;
+    word-break: break-all;
+    background-color: black;
+    overflow: visible;
+}
