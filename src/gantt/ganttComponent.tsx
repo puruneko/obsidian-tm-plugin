@@ -11,7 +11,12 @@ import type { GanttTask } from "wx-react-gantt";
 import "wx-react-gantt/dist/gantt.css";
 import "./gantt.css";
 //
-import { getData, zoomConfig, simpleColumns } from "../debug/sampleData.ts";
+import {
+    getData,
+    zoomConfig,
+    simpleColumns,
+    zoomConfigSimple,
+} from "../debug/sampleData.ts";
 import { ItemView } from "obsidian";
 import { GanttView } from "./ganttView.ts";
 import { toDateStringFromDateRange } from "../util/datetimeUtil.ts";
@@ -168,7 +173,7 @@ const GanttComponent = forwardRef((props: T_GanttComponentProps, ref) => {
                     //links={ganttData.links}
                     tasks={props.view.gTasks}
                     scales={ganttData.scales}
-                    zoom={zoomConfig}
+                    zoom={zoomConfigSimple}
                     columns={columns}
                     cellHeight={25}
                     cellWidth={50}

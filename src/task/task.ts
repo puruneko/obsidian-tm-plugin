@@ -228,6 +228,12 @@ export function createSTask(
                 return null;
             }
             const dateRange = toDateRangeFromDateString(tag.value);
+            if (!dateRange) {
+                console.error(
+                    `タグ(${tag.prefix})のdateStringが不正です(${tag.value})`,
+                );
+                return null;
+            }
             parsedSTaskTags.push({
                 ...sTaskSettings[sTaskTagIndex],
                 ...tag,

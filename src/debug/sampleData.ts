@@ -146,6 +146,71 @@ export const zoomConfig = {
     ],
 };
 
+export const zoomConfigSimple = {
+    level: 5,
+    levels: [
+        {
+            minCellWidth: 200,
+            maxCellWidth: 400,
+            scales: [{ unit: "year", step: 1, format: "yyyy" }],
+        },
+        {
+            minCellWidth: 150,
+            maxCellWidth: 400,
+            scales: [
+                { unit: "year", step: 1, format: "yyyy" },
+                { unit: "quarter", step: 1, format: "QQQQ" },
+            ],
+        },
+        {
+            minCellWidth: 250,
+            maxCellWidth: 350,
+            scales: [
+                { unit: "quarter", step: 1, format: "QQQQ" },
+                { unit: "month", step: 1, format: "yyyy MM" },
+            ],
+        },
+        {
+            minCellWidth: 100,
+            scales: [
+                { unit: "month", step: 1, format: "yyyy MM" },
+                { unit: "week", step: 1, format: "'week' w" },
+            ],
+        },
+        {
+            minCellWidth: 10,
+            maxCellWidth: 20,
+            scales: [
+                { unit: "month", step: 1, format: "yyyy MM" },
+                { unit: "day", step: 1, format: "dd", css: dayStyle },
+            ],
+        },
+        {
+            minCellWidth: 25,
+            maxCellWidth: 75,
+            scales: [
+                { unit: "month", step: 1, format: "yyyy MM" },
+                { unit: "day", step: 1, format: "dd", css: dayStyle },
+            ],
+        },
+        {
+            minCellWidth: 30,
+            maxCellWidth: 50,
+            scales: [
+                { unit: "day", step: 1, format: "MM dd", css: dayStyle },
+                { unit: "hour", step: 6, format: hoursTemplate },
+            ],
+        },
+        {
+            maxCellWidth: 25,
+            scales: [
+                { unit: "day", step: 1, format: "MM dd", css: dayStyle },
+                { unit: "hour", step: 1, format: "HH:" },
+            ],
+        },
+    ],
+};
+
 ///////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////

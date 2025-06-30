@@ -74,13 +74,18 @@ export const set_DATETIME_CONSTANT = (newValue: typeof DATETIME_CONSTANT) => {
     DATETIME_CONSTANT = { ...newValue };
 };
 
+const regstrEndOfWord = `(?:\\s|$)`;
 //`[~]?(\\d{4}-\\d{1,2}-\\d{1,2})([T_](\\d{1,2}(:\\d{1,2}(:\\d{1,2})?)?))?`,
 const regstrDate = `(\\d{4})${DATETIME_CONSTANT.DATE_SEPARATOR_STR}(\\d{1,2})${DATETIME_CONSTANT.DATE_SEPARATOR_STR}(\\d{1,2})`;
 const regstrTime = `(\\d{1,2})(?:${DATETIME_CONSTANT.TIME_SEPARATOR_STR}(\\d{1,2}))?(?:${DATETIME_CONSTANT.TIME_SEPARATOR_STR}(\\d{1,2}))?`;
-const regexpDateHashtag = new RegExp(
+const ____regexpDateHashtag = new RegExp(
     `(?:${DATETIME_CONSTANT.DATERANGE_SPARATOR_STR})?${regstrDate}(?:${DATETIME_CONSTANT.DATETIME_SEPARATOR_STR}${regstrTime})?`,
     "g",
 );
+const regstrDateHashtag = `${regstrDate}(?:${DATETIME_CONSTANT.DATETIME_SEPARATOR_STR}${regstrTime})?`;
+const regexpDateHashtag = new RegExp(regstrDateHashtag);
+const regstrDateRangeHashtag = `${regstrDateHashtag}(?:(?:${DATETIME_CONSTANT.DATERANGE_SPARATOR_STR})${regstrDateHashtag})?`;
+const regexpDateRangeHashtag = new RegExp(regstrDateRangeHashtag);
 export const toDateStringFromDateProps = (dateProps: any) => {
     const d = toStringFromDateProps(dateProps);
     if (d) {
@@ -103,7 +108,8 @@ export const toDateStringFromDateProps = (dateProps: any) => {
  */
 export const toDateRangeFromDateString = (
     dateString: string,
-): T_DatetimeRange => {
+): T_DatetimeRange | null => {
+    /*
     const dates = Array.from(dateString.matchAll(regexpDateHashtag), (m) => {
         const d = {
             year: Number(m[1]),
@@ -123,6 +129,39 @@ export const toDateRangeFromDateString = (
             dates[1] && !Number.isNaN(dates[1].date.getTime())
                 ? dates[1].date
                 : null,
+    };
+    */
+    const m = dateString.match(regexpDateRangeHashtag);
+    if (!m) {
+        return null;
+    }
+    const start = new Date(
+        Number(m[1]),
+        Number(m[2]) - 1,
+        Number(m[3]),
+        Number(m[4] || 0),
+        Number(m[5] || 0),
+        //Number(m[6] || 0), //second
+    );
+    const end = new Date(
+        Number(m[7]),
+        Number(m[8]) - 1,
+        Number(m[9]),
+        Number(m[10] || 0),
+        Number(m[11] || 0),
+        //Number(m[12] || 0), //second
+    );
+    console.log(
+        "toDateRangeFromDateString",
+        dateString,
+        m,
+        start,
+        end,
+        regstrDateRangeHashtag,
+    );
+    return {
+        start: start,
+        end: end && !Number.isNaN(end.getTime()) ? end : null,
     };
 };
 
