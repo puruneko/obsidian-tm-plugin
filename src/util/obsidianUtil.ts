@@ -1,10 +1,13 @@
 import {
+    App as ObsidianApp,
     CachedMetadata,
     HeadingCache,
+    MarkdownView,
     Notice,
     Pos as ObsidianPos,
     TFile,
     View,
+    WorkspaceLeaf,
 } from "obsidian";
 import { T_TaskLocation } from "../task/task.ts";
 
@@ -173,4 +176,45 @@ export const writeFile = async (app: any, file: TFile, mdText: string) => {
     } else {
         new Notice(`file(${file.basename}) が更新されています`);
     }
+};
+
+/**
+ * 指定ファイルの指定ポジションにカーソルを移動する。
+ * ファイルが開かれている場合はそのタブに移動。開かれていない場合は新規タブを生成。
+ * @param destFile
+ * @param destPosition
+ */
+export const jumpToFilePosition = (
+    app: ObsidianApp,
+    destFile: TFile,
+    destPosition: ObsidianPos,
+) => {
+    let activeLeaf: WorkspaceLeaf | null = null;
+    const leaves = app.workspace.getLeavesOfType("markdown");
+    //すでにdestFileが開かれているか確認
+    for (const leaf of leaves) {
+        if (
+            leaf.view instanceof MarkdownView &&
+            leaf.view.file?.path === destFile.path
+        ) {
+            activeLeaf = leaf;
+            break;
+        }
+    }
+    //destFileが開かれないない場合はLeaf作成
+    if (activeLeaf === null) {
+        activeLeaf = app.workspace.getLeaf(true);
+    }
+    //activeLeafにフォーカスをあてる
+    app.workspace.setActiveLeaf(activeLeaf, { focus: true });
+    //activeLeafでdestFileを開き、指定のposにカーソルをセットする
+    activeLeaf.openFile(destFile).then((_) => {
+        const editor = app.workspace.activeEditor?.editor;
+        if (editor) {
+            editor.setCursor({
+                line: destPosition.start.line,
+                ch: 0,
+            });
+        }
+    });
 };

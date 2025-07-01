@@ -1,14 +1,18 @@
+.fc-timegrid-event-harness:has(.my-calendar-event-title:hover) {
+    z-index: 999 !important;
+}
+
 .my-event-container {
     display: block;
     width: 100%;
     /* overflow: hidden; */
 }
 .my-event-container:hover {
-    width: fit-content;
-    background-color: red;
+    width: 200%; /*横幅は最大200%まで*/
+    /* background-color: red; */
 }
 .my-calendar-event-title {
-    display: block; /* または block/flex でもOK */
+    display: block;
     width: 100%;
     max-width: 100%;
     overflow: hidden;
@@ -18,10 +22,10 @@
 }
 
 .my-calendar-event-title:hover {
-    width: 200%;
-    max-width: 200%;
+    display: inline-block;
+    width: fit-content; /*文字数の分だけ横幅を伸ばす*/
     white-space: normal;
     word-break: break-all;
-    background-color: black;
+    background-color: rgba(0, 0, 0, 0.5);
     overflow: visible;
 }

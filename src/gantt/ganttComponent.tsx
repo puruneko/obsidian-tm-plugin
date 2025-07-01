@@ -23,6 +23,7 @@ import { toDateStringFromDateRange } from "../util/datetimeUtil.ts";
 import { rebuildTaskLine, T_ParsedTask } from "../util/lineParser.ts";
 import { T_STaskSetting } from "../task/task.ts";
 import { writeFileByOffset } from "../util/obsidianUtil.ts";
+import TestTaskTemplateComponent from "./ganttTaskTemplate.tsx";
 //
 type T_GanttComponentProps = {
     view: GanttView;
@@ -155,6 +156,7 @@ const GanttComponent = forwardRef((props: T_GanttComponentProps, ref) => {
             return !c ? simpleColumns : false;
         });
     };
+    //
 
     //
     console.log("@ganttComponent.tsx", props.view.gTasks, props);
@@ -182,10 +184,13 @@ const GanttComponent = forwardRef((props: T_GanttComponentProps, ref) => {
                         console.log("Add blocked:", task);
                         return false; // ← 追加をキャンセル
                     }}
+                    taskTemplate={TestTaskTemplateComponent}
                 />
             </Willow>
         </div>
     );
 });
+
+//
 
 export default GanttComponent;

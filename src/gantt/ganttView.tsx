@@ -146,16 +146,14 @@ export class GanttView extends ItemView {
     async onOpen(): Promise<void> {
         // ref を取得
         this.ref = createRef<typeof GanttComponent>();
-        /*
-        this.ReactComponent = React.createElement(GanttComponent, {
-            ref: this.ref,
-            gTasks: this.gTasks,
-            reloadSTasks: this.reloadSTasks.bind(this),
-        }); // ✅ JSXと違いこちらではrefは props に入らない
-        ReactDOM.render(this.ReactComponent, (this as any).contentEl);
-        */
 
-        this.GanttRoot = createRoot((this as any).contentEl);
+        const wrapperElement = (this as any).contentEl as HTMLElement;
+        wrapperElement.addEventListener("click", (e) => {
+            //GanttComponent内はobsidianのclickイベントは発生しないようにする
+            e.stopPropagation();
+        });
+
+        this.GanttRoot = createRoot(wrapperElement);
         this.GanttRoot.render(
             <GanttComponent
                 ref={this.ref}

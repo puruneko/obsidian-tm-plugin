@@ -63,7 +63,7 @@ import {
 } from "../task/task.ts";
 import ReactStarterPlugin from "../index.tsx";
 import { PLUGIN_NAME } from "../ui/plugin.ts";
-import { getCache } from "../util/obsidianUtil.ts";
+import { getCache, jumpToFilePosition } from "../util/obsidianUtil.ts";
 import { toFullCalendarEvents } from "./calendarUtil.ts";
 //
 import "./calendar.css";
@@ -312,7 +312,7 @@ export class MyCalendarView extends ItemView {
                 "is-live-preview",
             );
             titleElement.addEventListener("click", (_) => {
-                this.jumpToFilePosition(location.file, location.position);
+                jumpToFilePosition(this.app, location.file, location.position);
             });
             titleElement.dataset.notepath = location.file.path || "";
 
@@ -515,7 +515,7 @@ export class MyCalendarView extends ItemView {
      * @param destFile
      * @param destPosition
      */
-    jumpToFilePosition(destFile: TFile, destPosition: Pos) {
+    __jumpToFilePosition(destFile: TFile, destPosition: Pos) {
         let activeLeaf: WorkspaceLeaf | null = null;
         const leaves = this.app.workspace.getLeavesOfType("markdown");
         for (const leaf of leaves) {
