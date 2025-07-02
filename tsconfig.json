@@ -21,7 +21,12 @@
         "isolatedModules": true,
         //
         "strictPropertyInitialization": false,
-        "noEmit": true
+        "noEmit": true,
+        //
+        "baseUrl": ".",
+        "paths": {
+            "*": ["node_modules/*"]
+        }
     },
     "include": ["src"]
 

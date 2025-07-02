@@ -14,7 +14,9 @@ import { MyTaskSuggest, PlanFollowUpSuggest } from "./ui/suggest.ts";
 import { GanttView, VIEW_TYPE_GANTT } from "./gantt/ganttView.tsx";
 import { defaultSTaskSettings, getSTasks, T_STask } from "./task/task.ts";
 import { PLUGIN_NAME } from "./ui/plugin.ts";
-
+//
+import GanttViewSv, { VIEW_TYPE_GANTT_SV } from "./gantt_sv/ganttView_sv.ts";
+//
 interface MyPluginSettings {
     mySetting: string;
     mySetting2: string;
@@ -34,7 +36,8 @@ const DEFAULT_SETTINGS: MyPluginSettings = {
 
 //
 export default class MyPlugin extends Plugin {
-    private view: GanttView;
+    private ganttStack: "react" | "svelte" = "react";
+    private view: GanttView | any;
     settings: MyPluginSettings;
     obisidianLastClickedEvent: any = null;
     //
@@ -49,25 +52,42 @@ export default class MyPlugin extends Plugin {
     //
 
     async onload(): Promise<void> {
+        await this.loadSettings();
         //
         //gantt View をRightパネルへ登録
         //
-        this.registerView(
-            VIEW_TYPE_GANTT,
-            (leaf: WorkspaceLeaf) =>
-                (this.view = new GanttView(leaf, this, this.sTaskSettings[1])),
-        );
-
-        this.app.workspace.onLayoutReady(
-            this.generateOnLayoutReady(VIEW_TYPE_GANTT, this),
-        ); //this.onGanttLayoutReady.bind(this));
-        this.viewsType.push(VIEW_TYPE_GANTT);
+        if (this.ganttStack === "react") {
+            this.registerView(
+                VIEW_TYPE_GANTT,
+                (leaf: WorkspaceLeaf) =>
+                    (this.view = new GanttView(
+                        leaf,
+                        this,
+                        this.sTaskSettings[1],
+                    )),
+            );
+            this.app.workspace.onLayoutReady(
+                this.generateOnLayoutReady(VIEW_TYPE_GANTT, this),
+            ); //this.onGanttLayoutReady.bind(this));
+            this.viewsType.push(VIEW_TYPE_GANTT);
+        } else if (this.ganttStack === "svelte") {
+            this.registerView(
+                VIEW_TYPE_GANTT_SV,
+                (leaf) => new GanttViewSv(leaf, this, this.sTaskSettings[1]),
+            );
+            this.addRibbonIcon(
+                "calendar-with-checkmark",
+                "Open Gantt View",
+                () => {
+                    this.dev____activateView();
+                },
+            );
+            this.viewsType.push(VIEW_TYPE_GANTT_SV);
+        }
 
         //
         //
         //
-
-        await this.loadSettings();
 
         //
         //カレンダーをRightパネルへ登録
@@ -137,6 +157,15 @@ export default class MyPlugin extends Plugin {
         await this.refetchSTasks();
     }
 
+    async dev____activateView() {
+        const leaf = this.app.workspace.getRightLeaf(false);
+        if (!leaf) {
+            return;
+        }
+        await leaf.setViewState({ type: VIEW_TYPE_GANTT_SV, active: true });
+        this.app.workspace.revealLeaf(leaf);
+    }
+
     generateOnLayoutReady(VIEW_TYPE: string, self: any) {
         function onLayoutReady(this: typeof self) {
             if (this.app.workspace.getLeavesOfType(VIEW_TYPE).length) {
@@ -159,7 +188,10 @@ export default class MyPlugin extends Plugin {
     onunload() {
         document.removeEventListener("click", this.clickHandler);
         this.viewsType.forEach((viewType) => {
-            this.app.workspace.detachLeavesOfType(viewType);
+            //this.app.workspace.detachLeavesOfType(viewType);
+            this.app.workspace
+                .getLeavesOfType(viewType)
+                .forEach((leaf) => leaf.detach());
         });
         Object.keys(this.workspaceEventRefs).forEach((eventName) => {
             this.app.workspace.offref(this.workspaceEventRefs[eventName]);
