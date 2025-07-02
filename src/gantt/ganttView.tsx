@@ -157,8 +157,7 @@ export class GanttView extends ItemView {
         this.GanttRoot.render(
             <GanttComponent
                 ref={this.ref}
-                view={this}
-                gTasks={this.gTasks}
+                view={this} //gTasksはview経由で参照
                 sTaskSetting={this.sTaskSetting}
                 requestRefetchSTasks={this.requestRefetchSTasks.bind(this)}
             />,

@@ -1,5 +1,6 @@
 import React, {
     forwardRef,
+    useCallback,
     useEffect,
     useImperativeHandle,
     useRef,
@@ -22,12 +23,11 @@ import { GanttView } from "./ganttView.ts";
 import { toDateStringFromDateRange } from "../util/datetimeUtil.ts";
 import { rebuildTaskLine, T_ParsedTask } from "../util/lineParser.ts";
 import { T_STaskSetting } from "../task/task.ts";
-import { writeFileByOffset } from "../util/obsidianUtil.ts";
+import { jumpToFilePosition, writeFileByOffset } from "../util/obsidianUtil.ts";
 import TestTaskTemplateComponent from "./ganttTaskTemplate.tsx";
 //
 type T_GanttComponentProps = {
     view: GanttView;
-    gTasks: GanttTask[];
     sTaskSetting: T_STaskSetting;
     requestRefetchSTasks: () => GanttTask;
 };
@@ -86,8 +86,38 @@ const GanttComponent = forwardRef((props: T_GanttComponentProps, ref) => {
         */
     }, []);
     //
+    const clickTaskHandler = useCallback(
+        ({ id, toggle, range, show }) => {
+            const gTaskCand = props.view.gTasks.filter(
+                (gTask) => gTask.id === id,
+            );
+            console.log(
+                "The id of the selected task:",
+                id,
+                props.view.gTasks,
+                gTaskCand,
+            );
+            if (gTaskCand.length === 1) {
+                const gTask = gTaskCand[0];
+                jumpToFilePosition(
+                    props.view.app,
+                    gTask.data.location.file,
+                    gTask.data.location.position,
+                );
+            }
+        },
+        [props.view.gTasks],
+    );
+    //
     useEffect(() => {
         if (ganttApiRef.current) {
+            //ダブルクリックでdefaultはタスクデータ編集画面が開くが、まったくいらないのでOFFにする
+            ganttApiRef.current.intercept("show-editor", (data) => {
+                return false;
+            });
+            //
+            ganttApiRef.current.on("select-task", clickTaskHandler);
+            //データ更新処理
             ganttApiRef.current.on("update-task", async (ev) => {
                 console.log("onGnatt update-task", ev);
                 if (ev.diff) {
@@ -121,7 +151,7 @@ const GanttComponent = forwardRef((props: T_GanttComponentProps, ref) => {
                 //
             });
         }
-    }, [ganttApiRef.current]);
+    }, [ganttApiRef.current, clickTaskHandler]);
     //
     useEffect(() => {
         //

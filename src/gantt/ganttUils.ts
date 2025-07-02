@@ -52,28 +52,34 @@ export const toGanttTasks = (
                         sTask.location.file,
                         heading,
                     );
-                    const summary = toGanttTask(sTask);
+                    const tmpGTask = toGanttTask(sTask);
                     const cache = gSummaryTasks[id] || {};
                     //merge
-                    parents[id] = toGanttTask(sTask, {
+                    const summaryGTask = toGanttTask(sTask, {
                         id: id,
                         parent: nearestParentId,
                         type: "summary",
                         text: heading.heading,
                         start: new Date(
                             Math.min(
-                                summary.start.getTime(),
+                                tmpGTask.start.getTime(),
                                 cache.start?.getTime() || sTask.start.getTime(),
                             ),
                         ),
                         end: new Date(
                             Math.max(
-                                summary.end.getTime(),
-                                cache.end?.getTime() || summary.end.getTime(),
+                                tmpGTask.end.getTime(),
+                                cache.end?.getTime() || tmpGTask.end.getTime(),
                             ),
                         ),
                         open: true,
+                        location: {
+                            ...sTask.location,
+                            position: heading.position,
+                        },
                     });
+                    summaryGTask.data = undefined;
+                    parents[id] = toGanttTask(summaryGTask as T_STask);
                     nearestParentId = id;
                     return parents;
                 },
