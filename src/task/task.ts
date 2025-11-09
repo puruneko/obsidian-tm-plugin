@@ -211,9 +211,9 @@ export function createSTask(
     }
     //taskがdoneの場合、sTask無し
     const doneStates = ["x", "X"];
-    if (doneStates.includes(task.state)) {
-        return [];
-    }
+    //if (doneStates.includes(task.state)) {
+    //    return [];
+    //}
 
     //sTaskSettingsに定義されたsTaskかどうか確認
     const sTaskTags = sTaskSettings.map((ts) => ts.targetTag);

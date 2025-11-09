@@ -290,14 +290,16 @@ export class MyCalendarView extends ItemView {
         };
         //
         /**
-         * eventcontent in calendar
+         * event inner content in calendar
+         * イベントエリア本体の色設定はevent Objで設定
          * @param arg
          * @returns
          */
-        const EventContentComponent = (arg: EventContentArg) => {
+        const EventInnerContentComponent = (arg: EventContentArg) => {
             const cEventInfoObj = arg.event;
             const location = this.getCEventInfoProps(cEventInfoObj, "location");
             const title = this.getCEventInfoProps(cEventInfoObj, "title");
+            const state = this.getCEventInfoProps(cEventInfoObj, "state");
 
             // HTML要素を作成
             const eventContainer = document.createElement("div");
@@ -405,7 +407,7 @@ export class MyCalendarView extends ItemView {
             //eventReceive: handleElementDroppedOnCalendar.bind(this),
             //
             events: this.fetchEvents.bind(this), //sTasks,
-            eventContent: EventContentComponent,
+            eventContent: EventInnerContentComponent,
         });
         //
         this.calendar.render();

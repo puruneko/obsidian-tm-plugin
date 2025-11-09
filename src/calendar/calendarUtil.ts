@@ -10,6 +10,9 @@ export function toFullCalendarEvents(
 ): EventInput[] {
     const _filter: T_STaskFilterSetting = filter || {};
     const fcEvents: EventInput[] = [];
+    //
+    const doneStates = ["x", "X"];
+    //
     for (let sTask of sTasks) {
         if (_filter.type && _filter.type.includes(sTask.type)) {
             fcEvents.push({
@@ -19,6 +22,9 @@ export function toFullCalendarEvents(
                 start: sTask.start,
                 end: sTask.end,
                 extendedProps: { ...sTask },
+                backgroundColor: doneStates.includes(sTask.state)
+                    ? "lightgray"
+                    : undefined,
             });
         }
     }
